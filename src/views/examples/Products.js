@@ -16,7 +16,11 @@
 
 */
 import React from "react";
-
+import { Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
+import { useAlert } from 'react-alert'
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
+import './Product.css'
 // reactstrap components
 import {
   Badge,
@@ -36,60 +40,202 @@ import {
   Container,
   Row,
   UncontrolledTooltip,
+  Button,
 } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
-import { useState } from "react";
 import { useEffect } from "react";
+import db, { firebase, storage } from "firebase/firebase.config";
+import { useState, useSelector } from "react";
+import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { merge } from "jquery";
 
-import db from "firebase/firebase.config";
-import { Button, Col, Input, InputGroup, InputGroupAddon, InputGroupText, FormGroup, Form, Label } from "reactstrap";
-import { Modal, ModalBody, ModalHeader, ModalFooter } from 'reactstrap'
 
 const Tables = () => {
+
   const [productList, setProductList] = useState([])
-  const [productInfo, setProductInfo] = useState({})
-  const [idOfProduct,setIdOfProduct] = useState(0)
-  const [modalEditInfo, setModalEditInfo] = useState(false);
-  const toggleEditInfo = () => setModalEditInfo(!modalEditInfo);
 
-  useEffect(async () => {
-    db.collection('Products').get().then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const productListPromise = querySnapshot.docs.map((productDoc) => (
-          { ...productDoc.data(), id: productDoc.id }
-        ))
+  const [modalAddProduct, setModalAddProduct] = useState(false)
 
-        Promise.all(productListPromise).then(newProductList => {
-          console.log("Product List: ", newProductList)
-          setProductList(newProductList)
+  const toggleModalAddProduct = () => setModalAddProduct(!modalAddProduct)
+
+  const [product, setProduct] = useState({})
+
+  const [specification, setSpecification] = useState({})
+
+  const [listFileImages, setListFileImages] = useState([])
+
+  const [fileImageThumb, setFileImageThumb] = useState([])
+
+  // const user = useSelector(state => state.user)
+
+  const storageRef = storage.ref()
+
+  const alert = useAlert()
+
+
+  // const filesUpload = files.map((file) => (
+  //   new File([file], getFileName(file.name))
+  // ))
+
+
+  const handleAddProduct = async () => {
+    // console.log(product)
+    const newProduct = { ...product, detail: [], specification: {} }
+
+    newProduct.detail.push(product.detail ? product.detail : "")
+    newProduct.specification = specification
+    newProduct.img = ""
+    newProduct.imgList = []
+    newProduct.rating = 5
+    newProduct.sales = 0
+    console.log(newProduct)
+
+
+
+    db.collection("Products").add(newProduct)
+      .then((res) => {
+        if (fileImageThumb.length > 0 && listFileImages.length > 0) {
+          const filesUpload = listFileImages.map((file) => (
+            new File([file], getFileName(file.name, res.id))
+          ))
+          filesUpload.push(new File([fileImageThumb[0]], getFileName(fileImageThumb[0].name, res.id)))
+
+          uploadFiles(filesUpload, res.id)
+
+        }
+
+        // console.log(filesUpload)
+
+        db.collection("Products").doc(res.id).set({ id: res.id }, { merge: true }).then(() => {
+          alert.success("Add product success")
         })
+      }, (err) => {
+        alert.error("Some error here")
+      }).finally(() => {
+        setFileImageThumb([])
+        setListFileImages([])
+        alert.success("Add product success")
+      })
+    setModalAddProduct(!modalAddProduct)
+  }
+
+
+
+  const getFileName = (fileName, productID) => {
+    return fileName.split('.')[0] + productID + (new Date(Date.now()).getTime()) + '.' + fileName.split('.').pop()
+  }
+
+
+  const uploadFiles = (filesUpload, productID) => {
+    const imgList = filesUpload.slice(0, filesUpload.length - 1)
+    const imgThumb = filesUpload[filesUpload.length - 1]
+    imgList.forEach((file) => {
+      const metadata = {
+        contentType: `image/${file.name.split('.').pop()}`
       }
+      const uploadTask = storageRef.child(`images/products/${file.name}`).put(file, metadata)
+      uploadTask.on('state_changed',
+        (snapshot) => {
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+        },
+        () => {
+          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+            console.log(downloadURL)
+
+            db.collection("Products").doc(productID).update({
+              imgList: firebase.firestore.FieldValue.arrayUnion(downloadURL),
+            }).then(() => {
+              console.log("Update image list success")
+            })
+          });
+        }
+      );
     })
+
+    const metadata = {
+      contentType: `image/${imgThumb.name.split('.').pop()}`
+    }
+    const uploadTask = storageRef.child(`images/products/${imgThumb.name}`).put(imgThumb, metadata)
+    uploadTask.on('state_changed', (snapshot) => {
+
+    }, (err) => {
+
+    }, () => {
+      uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+        db.collection("Products").doc(productID).update({
+          img: downloadURL
+        }).then(() => {
+          console.log("Update img thumb success")
+        })
+      })
+    })
+  }
+
+
+
+
+
+
+  useEffect(() => {
+    const fetchProductList = async () => {
+      const productRef = db.collection("Products")
+      const snapshot = await productRef.get()
+
+      const result = []
+      snapshot.forEach(doc => {
+        result.push(doc.data())
+      });
+      console.log(result)
+
+      setProductList(result)
+    }
+
+    fetchProductList()
   }, [])
 
 
-  
-  const handleOnClickEditInfo = (id) => {
-    setProductInfo(productList.find(item => item.id === id))
-    setIdOfProduct(id)
-    setModalEditInfo(!modalEditInfo)
-    console.log("productList")
+
+  const handleDeleteProduct = (productID) => {
+    confirmAlert({
+      customUI: ({ onClose }) => {
+        return (
+          <div className='custom-ui'>
+            <h1>Are you sure?</h1>
+            <p>You want to delete this file?</p>
+            <Button onClick={onClose}>No</Button>
+            <Button
+              onClick={() => {
+                console.log(productID)
+                db.collection("Products").doc(productID).delete().then(() => {
+                  const productListAfterDelete = productList.filter((product) => product.id !== productID)
+                  setProductList(productListAfterDelete)
+                })
+
+                onClose();
+                alert.success("Delete success", {
+                  timeout: 2000,
+                })
+              }}
+            >
+              Yes, Delete it!
+            </Button>
+          </div>
+        );
+      }
+    });
+    console.log(productID)
   }
 
-  const handleSaveInfo = async () => {
-    const productRef = db.collection("Products").doc(idOfProduct)
-    const doc = await productRef.get()
-    productRef.set(productInfo)
-    setModalEditInfo(!modalEditInfo)
+  const handleEditProduct = () => {
+
   }
 
-  const handleOnClickDeleteItem = (id) => {
-    const productRef = db.collection("Products").doc(id);
-    // const newProductList = productList.filter((value,id) => value != id)
-    setProductList(productList.filter((value,id) => value != id))
-    productRef.delete()
-  }
+
+
+
 
   return (
     <>
@@ -101,74 +247,91 @@ const Tables = () => {
           <div className="col">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Products tables</h3>
+                <h3 className="mb-0">Card tables</h3>
               </CardHeader>
               <Table className="align-items-center table-flush" responsive>
                 <thead className="thead-light">
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Product Id</th>
+                    <th scope="col">Product Name</th>
+                    <th scope="col">Product ID</th>
                     <th scope="col">Price</th>
-                    <th scope="col">Rating</th>
                     <th scope="col">Quantity</th>
-                    <th scope="col" />
+                    <th scope="col">Rating</th>
+                    <th scope="col"><Button color="primary" onClick={toggleModalAddProduct}>Add product</Button> </th>
                   </tr>
                 </thead>
-                <tbody>
-                {productList.map((product) => (
-                    <tr>
-                      <th scope="row">
-                        
-                        <Media className="align-items-center">
-                          <a
-                            className="avatar rounded-circle mr-3"
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            <img
-                              alt="..."
-                              src={product.img}
-                            />
-                          </a>
-                          <Media>
-                            <span className="mb-0 text-sm">
-                              {product.title}
-                            </span>
+                {
+                  productList.length > 0 && productList.map((product) => (
+
+                    <tbody>
+                      <tr>
+                        <th scope="row">
+                          <Media className="align-items-center">
+                            <a
+                              className="avatar rounded-circle mr-3"
+                              href="#pablo"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              <img
+                                alt="..."
+                                src={product.img}
+                              />
+                            </a>
+                            <Media>
+                              <span className="mb-0 text-sm">
+                                {product.title}
+                              </span>
+                            </Media>
                           </Media>
-                        </Media>
-                      </th>
-                      <td>{product.id}</td>
-                      <td>{product.price}</td>
-                      <td>{product.rating}</td>
-                      <td>{product.quantity}</td>
-                      <td className="text-right">
-                        <UncontrolledDropdown>
-                          <DropdownToggle
-                            className="btn-icon-only text-light"
-                            href="#pablo"
-                            role="button"
-                            size="sm"
-                            color=""
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            <i className="fas fa-ellipsis-v" />
-                          </DropdownToggle>
-                          <DropdownMenu className="dropdown-menu-arrow" right>
-                            <DropdownItem href="#" onClick={() => handleOnClickEditInfo (product.id)}>
-                              Edit Information
+                        </th>
+                        <td>{product.id}</td>
+                        <td>
+                          <Badge color="" className="badge-dot mr-4">
+                            ${product.price + ' '}USD
+                        </Badge>
+                        </td>
+                        <td>
+                          {product.quantity}
+                        </td>
+                        <td className="d-flex">
+
+                          <span className="d-flex align-self-center">{product.rating}</span>
+                          <span className="d-flex align-self-center">{Array(product.rating).fill().map((_, i) => <AiFillStar style={{ cursor: 'pointer' }} size={15} color='red' />)}</span>
+
+                        </td>
+                        <td className="text-right">
+                          <UncontrolledDropdown>
+                            <DropdownToggle
+                              className="btn-icon-only text-light"
+                              href="#pablo"
+                              role="button"
+                              size="sm"
+                              color=""
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              <i className="fas fa-ellipsis-v" />
+                            </DropdownToggle>
+                            <DropdownMenu className="dropdown-menu-arrow" right>
+                              <DropdownItem
+                                href="#pablo"
+                                onClick={() => handleDeleteProduct(product.id)}
+                              >
+                                Delete product
                             </DropdownItem>
-                            <DropdownItem href="#" onClick={() => handleOnClickDeleteItem(product.id)}>
-                              Delete Item
+                              <DropdownItem
+                                href="#pablo"
+                                onClick={handleEditProduct}
+                              >
+                                Edit product
                             </DropdownItem>
-                            <DropdownItem href="#" onClick={(e) => e.preventDefault()}>
-                              Something else here
-                            </DropdownItem>
-                          </DropdownMenu>
-                        </UncontrolledDropdown>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                            </DropdownMenu>
+                          </UncontrolledDropdown>
+                        </td>
+                      </tr>
+                    </tbody>
+
+                  ))
+                }
               </Table>
               <CardFooter className="py-4">
                 <nav aria-label="...">
@@ -192,7 +355,7 @@ const Tables = () => {
                         onClick={(e) => e.preventDefault()}
                       >
                         1
-                      </PaginationLink>
+                        </PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
                       <PaginationLink
@@ -208,7 +371,7 @@ const Tables = () => {
                         onClick={(e) => e.preventDefault()}
                       >
                         3
-                      </PaginationLink>
+                        </PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
                       <PaginationLink
@@ -225,48 +388,128 @@ const Tables = () => {
             </Card>
           </div>
         </Row>
-      
 
-        <Modal isOpen={modalEditInfo} toggle={toggleEditInfo}>
-          <ModalHeader toggle={toggleEditInfo}>Edit Information</ModalHeader>
-          
-          <ModalBody>
-              <Form>
-                  <FormGroup>
-                    <Label for="name">Product's name:</Label>
-                    <Input placeholder="name" value={productInfo.title}
-                    onChange={event => setProductInfo({...productInfo, title: event.target.value})}
-                    />
-                  </FormGroup>       
-                  <br/>
-                  
-                  <FormGroup>
-                      <Label for="price">Price:</Label>
-                      <Input placeholder="price" value={productInfo.price}
-                      onChange={event => setProductInfo({...productInfo, price: event.target.value})}
-                      />
-                  </FormGroup>
-                  <br/>
 
-                  <FormGroup>
-                      <Label for="quantity">Quantity:</Label>
-                      <Input type="number" placeholder="quantity" value={productInfo.quantity}
-                      onChange={event => setProductInfo({...productInfo, quantity: event.target.value})}
-                      />
-                  </FormGroup>
-              </Form>
-          </ModalBody>
-
-          <ModalFooter>
-              <Button color="primary" onClick={handleSaveInfo}>
-                  Save
-              </Button>{" "}
-              <Button color="secondary" onClick={toggleEditInfo}>
-                  Cancel
-              </Button>
-          </ModalFooter>
-        </Modal>
       </Container>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <Modal isOpen={modalAddProduct} toggle={toggleModalAddProduct}>
+        <ModalHeader toggle={toggleModalAddProduct}>Add Product</ModalHeader>
+        <ModalBody>
+
+          <Form>
+            <FormGroup>
+              <Label>Title:</Label>
+              <Input type="text" onChange={event => setProduct({ ...product, title: event.target.value })} />
+            </FormGroup>
+            <Row form>
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>Price:</Label>
+                  <Input type="number" onChange={event => setProduct({ ...product, price: event.target.value })} />
+                </FormGroup>
+              </Col>
+
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>Quantity:</Label>
+                  <Input type="number" onChange={event => setProduct({ ...product, quantity: event.target.value })} />
+                </FormGroup>
+              </Col>
+            </Row>
+            <Row form>
+              <FormGroup>
+                <Label>Specification:</Label>
+              </FormGroup>
+            </Row>
+            <Row form>
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>Brand:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, brand: event.target.value })} />
+                </FormGroup>
+              </Col>
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>Design:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, design: event.target.value })} />
+                </FormGroup>
+              </Col>
+            </Row>
+            <Row form>
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>Ram:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, Ram: event.target.value })} />
+                </FormGroup>
+              </Col>
+              <Col xs={6}>
+                <FormGroup>
+                  <Label>CPU:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, cpu: event.target.value })} />
+                </FormGroup>
+              </Col>
+            </Row>
+            <Row form>
+              <Col xs={4}>
+                <FormGroup>
+                  <Label>Storage:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, storage: event.target.value })} />
+                </FormGroup>
+              </Col>
+              <Col xs={4}>
+                <FormGroup>
+                  <Label>Size:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, size: event.target.value })} />
+                </FormGroup>
+              </Col>
+              <Col xs={4}>
+                <FormGroup>
+                  <Label>Guarantee:</Label>
+                  <Input type="textarea" onChange={event => setSpecification({ ...specification, guarantee: event.target.value })} />
+                </FormGroup>
+              </Col>
+            </Row>
+            <FormGroup>
+              <Label>Detail:</Label>
+              <Input type="textarea" onChange={event => setProduct({ ...product, detail: event.target.value })} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Upload Images:</Label>
+              <Input type="file"
+                name="listFileImages"
+                onChange={event => setListFileImages([...listFileImages, ...event.target.files])}
+                multiple={true}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>Upload Thumbnail:</Label>
+              <Input type="file"
+                name="fileImageThumb"
+                onChange={event => setFileImageThumb([...fileImageThumb, ...event.target.files])}
+              />
+            </FormGroup>
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={handleAddProduct}>Add Product</Button>{' '}
+          <Button color="secondary" onClick={toggleModalAddProduct}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
+      {/* {console.log(product)} */}
+
     </>
   );
 };
