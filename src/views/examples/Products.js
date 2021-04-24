@@ -88,6 +88,7 @@ const Tables = () => {
     newProduct.img = ""
     newProduct.imgList = []
     newProduct.rating = 5
+    newProduct.sales = 0
     console.log(newProduct)
 
 
