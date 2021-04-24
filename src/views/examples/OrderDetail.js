@@ -45,7 +45,7 @@ function OrderDetail(props) {
                         orderTime: orderTime,
                         deliverTime: deliverTime,
                         status: status,
-                        items: newItems,
+                        items: [...newItems],
                         // receiver info
                         receiver: receiver,
                         receiverAddress: address,
@@ -58,7 +58,7 @@ function OrderDetail(props) {
                     console.log("Order: ", newOrder)
                     setOrder(newOrder)
                 }).catch((error) => {
-                    console.log('Get usser error: ', error)
+                    console.log('Get user error: ', error)
                 })
             }).catch((error) => {
                 console.log("Get item list error", error)
@@ -69,6 +69,14 @@ function OrderDetail(props) {
 
     }, [])
 
+
+    const statusColor = (status) => {
+        if (status.toLowerCase() === 'pending') return 'red'
+        else if (status.toLowerCase() === 'processing') return 'orange'
+        else if (status.toLowerCase() === 'delivered') return 'green'
+        else if (status.toLowerCase() === 'cancelled') return 'gray'
+    }
+
     return (
         <div className='order-detail'>
             <Header />
@@ -78,28 +86,52 @@ function OrderDetail(props) {
                         <Card className='shadow'>
                             {order === null
                                 ? <Spinner color='primary' />
-                                : <Container fluid>
-                                    <Row>
+                                : <Container fluid >
+                                    <Row className='my-3'>
                                         <Col>
-                                            <div>Orderer: {order.orderer}</div>
-                                            <div>Email: {order.ordererEmail}</div>
-                                            <div>Phone: {order.ordererPhone}</div>
+                                            <div><b>Billing Address:</b></div>
+                                            <div>{order.orderer}</div>
+                                            <div>{order.ordererEmail}</div>
+                                            <div>{order.ordererPhone}</div>
                                         </Col>
                                         <Col>
-                                            <div>Receiver: {order.receiver}</div>
-                                            <div>Address: {order.receiverAddress}</div>
-                                            <div>Phone: {order.receiverPhone}</div>
+                                            <div><b>Shipping Address:</b></div>
+                                            <div>{order.receiver}</div>
+                                            <div>{order.receiverAddress}</div>
+                                            <div>{order.receiverPhone}</div>
                                         </Col>
                                     </Row>
-                                    {order.items.map((item) => (
-                                        <Row>
-                                            <div>Product ID: {item.productid}</div>
-                                            <div>Title: {item.title}</div>
-                                            <div><img src={item.img} alt={item.title} /></div>
-                                            <div>Price: {item.price}</div>
-                                            <div>Quantity: {item.quantity}</div>
-                                        </Row>
+                                    <Row className='my-3 py-2' style={{ borderBottom: '1px solid black' }}>
+                                        <Col lg='9'>
+                                            <div><b>Order: </b>{order.orderid}</div>
+                                            <div>Placed on {order.orderTime}</div>
+                                        </Col>
+                                        <Col lg='1'>
+                                            <div><b>Total</b></div>
+                                            <div>
+                                                {order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)}$
+                                            </div>
+                                        </Col>
+                                        <Col lg='2'>
+                                            <div><b>Status</b></div>
+                                            <div style={{ color: `${statusColor(order.status)}` }}>{order.status}</div>
+                                        </Col>
+                                    </Row>
 
+                                    {order.items.map((item) => (
+                                        <Row key={item.productid} className='my-4'>
+                                            <Col lg='2' className='px-1'>
+                                                <img src={item.img} alt={item.title} style={{ maxWidth: '150px' }} />
+                                            </Col>
+                                            <Col lg='7' className='px-1'>
+                                                <div>{item.title}</div>
+                                                <div>ID: {item.productid}</div>
+                                                <div>Quantity: {item.quantity}</div>
+                                            </Col>
+                                            <Col lg='1' className='px-1'>
+                                                <div>{item.price}$</div>
+                                            </Col>
+                                        </Row>
                                     ))}
                                 </Container>
                             }
@@ -110,7 +142,7 @@ function OrderDetail(props) {
 
             </Container>
 
-        </div>
+        </div >
     );
 }
 

@@ -70,6 +70,7 @@ const Orders = (props) => {
     const orderRef = db.collection("Orders").doc(index)
     orderRef.delete()
   }
+
   const statusColor = (status) => {
     if (status.toLowerCase() === 'pending') return 'red'
     else if (status.toLowerCase() === 'processing') return 'orange'
