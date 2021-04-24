@@ -107,8 +107,8 @@ const Tables = () => {
                   <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Password Id</th>
-                    <th scope="col">Email</th>
                     <th scope="col">Phone number</th>
+                    <th scope="col">Email</th>
                     <th scope="col">Action</th>
                     <th scope="col" />
                   </tr>
@@ -117,29 +117,16 @@ const Tables = () => {
                 {userList.map((user) => (
                     <tr>
                       <th scope="row">
+                      <th scope="row">{user.displayName}</th>
+                      
                         
-                        <Media className="align-items-center">
-                          <a
-                            className="avatar rounded-circle mr-3"
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            <img
-                              alt="..."
-                              src={user.img}
-                            />
-                          </a>
-                          <Media>
-                            <span className="mb-0 text-sm">
-                              {user.title}
-                            </span>
-                          </Media>
-                        </Media>
                       </th>
                       <td>{user.name}</td>
-                      <td>{user.password}</td>
-                      <td>{user.email}</td>
                       <td>{user.phone}</td>
+                      <td>{user.email}</td>
+                      <td></td>
+                      
+                      
                       <td className="text-right">
                         <UncontrolledDropdown>
                           <DropdownToggle
@@ -233,9 +220,7 @@ const Tables = () => {
               <Form>
                   <FormGroup>
                     <Label for="name">User's name:</Label>
-                    <Input placeholder="name" value={userInfo.title}
-                    onChange={event => setUserInfo({...userInfo, title: event.target.value})}
-                    />
+                   
                   </FormGroup>       
                   <br/>
                   
