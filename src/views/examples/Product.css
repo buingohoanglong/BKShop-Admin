@@ -1,0 +1,8 @@
+.custom-ui {
+    text-align: center;
+    width: 500px;
+    padding: 40px;
+    background: #28bae6;
+    box-shadow: 0 20px 75px rgb(0 0 0 / 23%);
+    color: #fff;
+}

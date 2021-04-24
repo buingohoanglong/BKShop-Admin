@@ -17,7 +17,10 @@
 */
 import React from "react";
 import {Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
-
+import { useAlert } from 'react-alert'
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
+import './Product.css'
 // reactstrap components
 import {
   Badge,
@@ -42,19 +45,137 @@ import {
 // core components
 import Header from "components/Headers/Header.js";
 import { useEffect } from "react";
-import db from "firebase/firebase.config";
-import { useState } from "react";
+import db , {firebase, storage} from "firebase/firebase.config";
+import { useState, useSelector } from "react";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { merge } from "jquery";
 
 
 const Tables = () => {
 
   const [productList,setProductList] = useState([])
+
   const [modalAddProduct,setModalAddProduct] = useState(false)
+
   const toggleModalAddProduct = () => setModalAddProduct(!modalAddProduct)
 
-  const [product,setProduct] = useState({
-  })
+  const [product,setProduct] = useState({})
+
+  const [specification,setSpecification] = useState({})
+
+  const [listFileImages, setListFileImages] = useState([])
+
+  const [fileImageThumb, setFileImageThumb] = useState([]) 
+
+  // const user = useSelector(state => state.user)
+
+  const storageRef = storage.ref()
+
+  const alert = useAlert()
+
+
+  // const filesUpload = files.map((file) => (
+  //   new File([file], getFileName(file.name))
+  // ))
+
+
+  const handleAddProduct = async () => {
+    // console.log(product)
+    const newProduct = {...product, detail: [], specification: {}}
+
+    newProduct.detail.push(product.detail? product.detail: "")
+    newProduct.specification = specification
+    newProduct.img = ""
+    newProduct.imgList = []
+    newProduct.rating = 5
+    console.log(newProduct)
+
+
+
+    db.collection("Products").add(newProduct)
+      .then((res) => {
+        if(fileImageThumb.length > 0 && listFileImages.length > 0) {
+          const filesUpload = listFileImages.map((file) => (
+            new File([file], getFileName(file.name, res.id))
+          ))
+          filesUpload.push(new File([fileImageThumb[0]], getFileName(fileImageThumb[0].name, res.id)))
+
+          uploadFiles(filesUpload, res.id)
+          
+        }
+
+        // console.log(filesUpload)
+
+        db.collection("Products").doc(res.id).set({id: res.id}, {merge: true}).then(() => {
+          alert.success("Add product success")
+        })
+      }, (err) => {
+        alert.error("Some error here")
+      }).finally(() => {
+        setFileImageThumb([])
+        setListFileImages([])
+        alert.success("Add product success")
+      })
+    setModalAddProduct(!modalAddProduct)
+  }
+
+
+
+  const getFileName = (fileName, productID) => {
+    return fileName.split('.')[0] + productID + (new Date(Date.now()).getTime()) + '.' + fileName.split('.').pop()
+  }
+
+
+  const uploadFiles = (filesUpload, productID) => {
+    const imgList = filesUpload.slice(0,filesUpload.length-1)
+    const imgThumb = filesUpload[filesUpload.length-1]
+    imgList.forEach((file) => {
+        const metadata = {
+            contentType: `image/${file.name.split('.').pop()}`
+        }
+        const uploadTask = storageRef.child(`images/products/${file.name}`).put(file, metadata)
+        uploadTask.on('state_changed',
+            (snapshot) => {
+            },
+            (error) => {
+                // Handle unsuccessful uploads
+            },
+            () => {
+                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                    console.log(downloadURL)
+                    
+                    db.collection("Products").doc(productID).update({
+                      imgList: firebase.firestore.FieldValue.arrayUnion(downloadURL),
+                    }).then(() => {
+                      console.log("Update image list success")
+                    })
+                });
+            }
+        );
+    })
+
+    const metadata = {
+      contentType: `image/${imgThumb.name.split('.').pop()}`
+    }
+    const uploadTask = storageRef.child(`images/products/${imgThumb.name}`).put(imgThumb, metadata)
+    uploadTask.on('state_changed', (snapshot) => {
+
+    }, (err) => {
+
+    }, () => {
+      uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+        db.collection("Products").doc(productID).update({
+          img: downloadURL
+        }).then(() => {
+          console.log("Update img thumb success")
+        })
+      })
+    })
+  }
+
+
+
+
 
 
   useEffect(() => {
@@ -76,35 +197,41 @@ const Tables = () => {
 
 
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = (productID) => {
+    confirmAlert({
+      customUI: ({ onClose }) => {
+        return (
+          <div className='custom-ui'>
+            <h1>Are you sure?</h1>
+            <p>You want to delete this file?</p>
+            <Button onClick={onClose}>No</Button>
+            <Button
+              onClick={() => {
+                console.log(productID)
+                db.collection("Products").doc(productID).delete().then(()=>{
+                  const productListAfterDelete = productList.filter((product) => product.id !== productID)
+                  setProductList(productListAfterDelete)
+                })
 
+                onClose();
+                alert.success("Delete success", {
+                  timeout: 2000,
+                })
+              }}
+            >
+              Yes, Delete it!
+            </Button>
+          </div>
+        );
+      }
+    });
+    console.log(productID)
   }
 
   const handleEditProduct = () => {
 
   }
 
-  const handleAddProduct = () => {
-    // console.log(product)
-    const newProduct = {...product}
-
-    const specification = product.specification
-    const detail = product.detail
-
-    const resultSpecification = {}
-    const resultDetail = []
-
-    const splitSpecification = specification.split(".")
-    splitSpecification.forEach((spec) => {
-      const temp = spec.split(":")
-    })
-
-
-    
-
-
-    setModalAddProduct(!modalAddProduct)
-  }
 
 
 
@@ -186,7 +313,7 @@ const Tables = () => {
                           <DropdownMenu className="dropdown-menu-arrow" right>
                             <DropdownItem
                               href="#pablo"
-                              onClick={handleDeleteProduct}
+                              onClick={() => handleDeleteProduct(product.id)}
                             >
                               Delete product
                             </DropdownItem>
@@ -264,6 +391,19 @@ const Tables = () => {
         
         </Container>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
         <Modal isOpen={modalAddProduct} toggle={toggleModalAddProduct}>
           <ModalHeader toggle={toggleModalAddProduct}>Add Product</ModalHeader>
           <ModalBody>
@@ -288,21 +428,77 @@ const Tables = () => {
                   </FormGroup>
                 </Col>
               </Row>
-              <FormGroup>
-                <Label>Specification:</Label>
-                <Input type="textarea" onChange={event => setProduct({...product, specification: event.target.value})} />
-              </FormGroup>
+              <Row form>
+                <FormGroup>
+                  <Label>Specification:</Label>
+                </FormGroup>
+              </Row>
+              <Row form>
+                <Col xs={6}>
+                  <FormGroup>
+                    <Label>Brand:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, brand: event.target.value})} />
+                  </FormGroup>
+                </Col>
+                <Col xs={6}>
+                  <FormGroup>
+                    <Label>Design:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, design: event.target.value})} />
+                  </FormGroup>
+                </Col>
+              </Row>
+              <Row form>
+                <Col xs={6}>
+                  <FormGroup>
+                    <Label>Ram:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, Ram: event.target.value})} />
+                  </FormGroup>
+                </Col>
+                <Col xs={6}>
+                  <FormGroup>
+                    <Label>CPU:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, cpu: event.target.value})} />
+                  </FormGroup>
+                </Col>
+              </Row>
+              <Row form>
+                <Col xs={4}>
+                  <FormGroup>
+                    <Label>Storage:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, storage: event.target.value})} />
+                  </FormGroup>
+                </Col>
+                <Col xs={4}>
+                  <FormGroup>
+                    <Label>Size:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, size: event.target.value})} />
+                  </FormGroup>
+                </Col>
+                <Col xs={4}>
+                  <FormGroup>
+                    <Label>Guarantee:</Label>
+                    <Input type="textarea" onChange={event => setSpecification({...specification, guarantee: event.target.value})} />
+                  </FormGroup>
+                </Col>
+              </Row>
               <FormGroup>
                 <Label>Detail:</Label>
                 <Input  type="textarea" onChange={event => setProduct({...product,detail: event.target.value})}/>
               </FormGroup>
               <FormGroup>
                 <Label>Upload Images:</Label>
-                <Input type="file"/>
+                <Input type="file"
+                  name="listFileImages"
+                  onChange = {event => setListFileImages([...listFileImages, ...event.target.files])}
+                  multiple={true}
+                />
               </FormGroup>
               <FormGroup>
                 <Label>Upload Thumbnail:</Label>
-                <Input type="file"/>
+                <Input type="file"
+                  name="fileImageThumb"
+                  onChange = {event => setFileImageThumb([...fileImageThumb, ...event.target.files])}
+                />
               </FormGroup>
             </Form>
           </ModalBody>
