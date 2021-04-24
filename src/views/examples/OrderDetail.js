@@ -31,6 +31,7 @@ function OrderDetail(props) {
                         quantity: item.quantity,
                         productid: productDoc.id,
                         totalQuantity: productDoc.data().quantity,
+                        sales: productDoc.data().sales
                     }
                 )).catch((error) => {
                     console.log("Get item error: ", error)
@@ -87,6 +88,15 @@ function OrderDetail(props) {
         e.preventDefault()
         db.collection('Orders').doc(order.orderid).update({ status: 'delivered' })
             .then(() => {
+                order.items.forEach((item) => {
+                    db.collection('Products').doc(item.productid).update({
+                        sales: (item.sales ? item.sales : 0) + item.quantity
+                    }).then(() => {
+                        console.log("Increment sales success")
+                    }).catch((error) => {
+                        console.log("Increment slaes error: ", error)
+                    })
+                })
                 console.log("Submit success")
             }).catch((error) => {
                 console.log("Submmit Error: ", error)
@@ -99,13 +109,13 @@ function OrderDetail(props) {
         e.preventDefault()
         db.collection('Orders').doc(order.orderid).update({ status: 'processing' })
             .then(() => {
-                order.items.forEach(async (item) => {
+                order.items.forEach((item) => {
                     db.collection('Products').doc(item.productid).update({
                         quantity: item.totalQuantity - item.quantity
                     }).then(() => {
-                        console.log("Decrement success")
+                        console.log("Decrement quantity success")
                     }).catch((error) => {
-                        console.log("Decrement error", error)
+                        console.log("Decrement quantity error", error)
                     })
                 })
                 console.log("Submit success")
