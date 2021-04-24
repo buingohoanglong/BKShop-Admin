@@ -53,6 +53,36 @@ const Index = (props) => {
   const [activeNav, setActiveNav] = useState(1);
   const [chartExample1Data, setChartExample1Data] = useState("data1");
 
+  const [chartBrandData, setChartBrandData] = useState(Array(9).fill(0))
+  const brandIndex = {
+    apple: 0,
+    xiaomi: 1,
+    huawei: 2,
+    lg: 3,
+    hp: 4,
+    dell: 5,
+    asus: 6,
+    vaio: 7,
+    others: 8,
+  }
+
+  useEffect(() => {
+    // load brand chart data
+    db.collection('Products').get().then((querySnapshot) => {
+      const data = Array(9).fill(0)
+      querySnapshot.docs.forEach((productDoc) => {
+        const brandName = productDoc.data().specification['brand'] ? productDoc.data().specification['brand'] : 'others'
+        if (!Object.keys(brandIndex).includes(brandName.toLowerCase())) {
+          data[brandIndex['others']] += 1
+        } else {
+          data[brandIndex[brandName.toLowerCase()]] += 1
+        }
+      })
+      console.log("Brand data: ", data)
+      setChartBrandData(data)
+    })
+  }, [])
+
   if (window.Chart) {
     parseOptions(Chart, chartOptions());
   }
@@ -81,7 +111,9 @@ const Index = (props) => {
       {/* Page content */}
       <Container className="mt--7" fluid>
         <Row>
+
           <Col className="mb-5 mb-xl-0" xl="8">
+            {/* Sale chart */}
             <Card className="bg-gradient-default shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
@@ -122,8 +154,8 @@ const Index = (props) => {
                   </div>
                 </Row>
               </CardHeader>
+              {/* Chart */}
               <CardBody>
-                {/* Chart */}
                 <div className="chart">
                   <Line
                     data={chartExample1[chartExample1Data]}
@@ -134,6 +166,8 @@ const Index = (props) => {
               </CardBody>
             </Card>
           </Col>
+
+          {/* Order chart */}
           <Col xl="4">
             <Card className="shadow">
               <CardHeader className="bg-transparent">
@@ -157,7 +191,75 @@ const Index = (props) => {
               </CardBody>
             </Card>
           </Col>
+
         </Row>
+
+
+        <Row className='justify-content-start my-4'>
+          <Col xl='6'>
+            <Card className="shadow">
+              <CardHeader className="bg-gradient-default">
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h6 className="text-uppercase text-muted ls-1 mb-1 text-white">
+                      Brands
+                    </h6>
+                    <h2 className="mb-0 text-white">Total products</h2>
+                  </div>
+                </Row>
+              </CardHeader>
+              <CardBody className="bg-gradient-default">
+                {/* Chart */}
+                <div className="chart">
+                  <Bar
+                    data={{
+                      labels: Object.keys(brandIndex),
+                      datasets: [
+                        {
+                          label: "Products",
+                          data: [...chartBrandData],
+                          maxBarThickness: 20,
+                          backgroundColor: 'white',
+                        },
+                      ]
+                    }}
+                    options={{
+                      scales: {
+                        yAxes: [
+                          {
+                            ticks: {
+                              callback: function (value) {
+                                if (!(value % Math.round(Math.max(chartBrandData) / 10))) {
+                                  //return '$' + value + 'k'
+                                  return value;
+                                }
+                              },
+                            },
+                          },
+                        ],
+                      },
+                      tooltips: {
+                        callbacks: {
+                          label: function (item, data) {
+                            var label = data.datasets[item.datasetIndex].label || "";
+                            var yLabel = item.yLabel;
+                            var content = "";
+                            if (data.datasets.length > 1) {
+                              content += label;
+                            }
+                            content += yLabel;
+                            return content;
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+
       </Container>
     </>
   );
