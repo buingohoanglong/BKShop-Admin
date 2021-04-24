@@ -42,8 +42,9 @@ import Header from "components/Headers/Header.js";
 import { useState } from "react";
 import { useEffect } from "react";
 import db from "firebase/firebase.config";
+import ChangeStatusModal from "components/ChangeStatusModal/ChangeStatusModal";
 
-const Tables = (props) => {
+const Orders = (props) => {
   const [orderList, setOrderList] = useState([])
 
   useEffect(() => {
@@ -61,6 +62,10 @@ const Tables = (props) => {
     })
   }, [])
 
+  const handleChangeStatus = (e) => {
+    e.preventDefault()
+  }
+
 
   return (
     <>
@@ -71,9 +76,11 @@ const Tables = (props) => {
         <Row>
           <div className="col">
             <Card className="shadow">
+
               <CardHeader className="border-0">
-                <h3 className="mb-0">Card tables</h3>
+                <h3 className="mb-0">Orders table</h3>
               </CardHeader>
+
               <Table className="align-items-center table-flush" responsive>
                 <thead className="thead-light">
                   <tr>
@@ -110,13 +117,11 @@ const Tables = (props) => {
                           >
                             <i className="fas fa-ellipsis-v" />
                           </DropdownToggle>
-                          <DropdownMenu className="dropdown-menu-arrow" right>
+                          <DropdownMenu persist className="dropdown-menu-arrow" right>
                             <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
                             >
-                              Change Status
-                          </DropdownItem>
+                              <ChangeStatusModal orderid={order.id} orderstatus={order.status} />
+                            </DropdownItem>
                             <DropdownItem
                               href="#pablo"
                               onClick={(e) => e.preventDefault()}
@@ -203,4 +208,4 @@ const Tables = (props) => {
   );
 };
 
-export default Tables;
+export default Orders;
