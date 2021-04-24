@@ -43,6 +43,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import db from "firebase/firebase.config";
 
+
 const Tables = (props) => {
   const [orderList, setOrderList] = useState([])
 
@@ -61,7 +62,10 @@ const Tables = (props) => {
     })
   }, [])
 
-
+  const handleOnClickDeleteOrder = (index) => {
+    const orderRef = db.collection("Orders").doc(index)
+    orderRef.delete()
+  }
   return (
     <>
       <Header />
@@ -121,13 +125,14 @@ const Tables = (props) => {
                               href="#pablo"
                               onClick={(e) => e.preventDefault()}
                             >
-                              Delete
+                              Change Address
                           </DropdownItem>
                             <DropdownItem
                               href="#pablo"
-                              onClick={(e) => e.preventDefault()}
+                              onClick={() => handleOnClickDeleteOrder(order.id)}
                             >
-                              Something else here
+                              Delete Order
+
                           </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
@@ -137,9 +142,6 @@ const Tables = (props) => {
 
                 </tbody>
               </Table>
-
-
-
 
 
               <CardFooter className="py-4">
