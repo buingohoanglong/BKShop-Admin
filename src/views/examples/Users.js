@@ -70,7 +70,7 @@ const Tables = () => {
 
   
   const handleOnClickEditInfo = (id) => {
-    setUserInfo(userList.find(item => item.id === id))
+    setUserInfo(userList.find(user => user.id === id))
     setIdOfUser(id)
     setModalEditInfo(!modalEditInfo)
     console.log("userList")
@@ -83,9 +83,8 @@ const Tables = () => {
     setModalEditInfo(!modalEditInfo)
   }
 
-  const handleOnClickDeleteItem = (id) => {
+  const handleOnClickDeleteUser = (id) => {
     const userRef = db.collection("Users").doc(id);
-    // const newUserList = userList.filter((value,id) => value != id)
     setUserList(userList.filter((value,id) => value != id))
     userRef.delete()
   }
@@ -106,26 +105,21 @@ const Tables = () => {
                 <thead className="thead-light">
                   <tr>
                     <th scope="col">Name</th>
-                    <th scope="col">Password Id</th>
-                    <th scope="col">Phone number</th>
+                    <th scope="col">Password</th>
                     <th scope="col">Email</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">Phone number</th>
+                    <th scope="col"></th>
                     <th scope="col" />
                   </tr>
                 </thead>
                 <tbody>
                 {userList.map((user) => (
                     <tr>
-                      <th scope="row">
                       <th scope="row">{user.displayName}</th>
-                      
-                        
-                      </th>
-                      <td>{user.name}</td>
-                      <td>{user.phone}</td>
-                      <td>{user.email}</td>
-                      <td></td>
-                      
+                        <td>{user.Password}</td>                   
+                        <td>{user.email}</td>
+                        <td>{user.phone}</td>
+                        <td></td>
                       
                       <td className="text-right">
                         <UncontrolledDropdown>
@@ -143,12 +137,10 @@ const Tables = () => {
                             <DropdownItem href="#" onClick={() => handleOnClickEditInfo (user.id)}>
                               Edit Information
                             </DropdownItem>
-                            <DropdownItem href="#" onClick={() => handleOnClickDeleteItem(user.id)}>
+                            <DropdownItem href="#" onClick={() => handleOnClickDeleteUser(user.id)}>
                               Delete User
                             </DropdownItem>
-                            <DropdownItem href="#" onClick={(e) => e.preventDefault()}>
-                              Something else here
-                            </DropdownItem>
+                            
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </td>
@@ -219,28 +211,37 @@ const Tables = () => {
           <ModalBody>
               <Form>
                   <FormGroup>
-                    <Label for="name">User's name:</Label>
-                   
+                    <Label for="displayName">User's name:</Label>
+                    <Input type="string" placeholder="displayName" value={userInfo.displayName}
+                      onChange={event => setUserInfo({...userInfo, displayName: event.target.value})}
+                      />
                   </FormGroup>       
                   <br/>
-                  
                   <FormGroup>
-                      <Label for="password">Password:</Label>
-                      {/* <Input placeholder="password" value={userInfo.price}
-                      onChange={event => setUserInfo({...userInfo, password: event.target.value})}
-                      /> */}
+                      <Label for="Phone number">Phone number:</Label>
+                      <Input type="string" placeholder="Phone number" value={userInfo.phone}
+                      onChange={event => setUserInfo({...userInfo, phone: event.target.value})}
+                      />
                   </FormGroup>
                   <br/>
-
                   <FormGroup>
                       <Label for="email">Email:</Label>
                       <Input type="string" placeholder="email" value={userInfo.email}
                       onChange={event => setUserInfo({...userInfo, email: event.target.value})}
                       />
                   </FormGroup>
+
+                  
               </Form>
           </ModalBody>
-
+          <ModalFooter>
+              <Button color="primary" onClick={handleSaveInfo}>
+                  Save
+              </Button>{" "}
+              <Button color="secondary" onClick={toggleEditInfo}>
+                  Cancel
+              </Button>
+          </ModalFooter>
           
         </Modal>
       </Container>
