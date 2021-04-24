@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Header from 'components/Headers/Header';
 import { useRouteMatch } from 'react-router';
-import { Card, Col, Container, Row } from 'reactstrap';
+import { Card, Col, Container, Row, Spinner } from 'reactstrap';
 import { useEffect } from 'react';
 import db from 'firebase/firebase.config';
 import { useState } from 'react';
@@ -13,7 +13,7 @@ OrderDetail.propTypes = {
 
 function OrderDetail(props) {
     const match = useRouteMatch()
-    const [order, setOrder] = useState({})
+    const [order, setOrder] = useState(null)
 
     useEffect(() => {
         const orderid = match.params.id
@@ -31,12 +31,12 @@ function OrderDetail(props) {
                         productid: productDoc.id,
                     }
                 )).catch((error) => {
-                    console.log("Get items error: ", error)
+                    console.log("Get item error: ", error)
                 })
             })
 
             // set order
-            return Promise.all(itemsPromise).then((newItems) => {
+            Promise.all(itemsPromise).then((newItems) => {
                 // get user
                 db.collection('Users').doc(userid).get().then((userDoc) => {
                     const newOrder = {
@@ -60,6 +60,8 @@ function OrderDetail(props) {
                 }).catch((error) => {
                     console.log('Get usser error: ', error)
                 })
+            }).catch((error) => {
+                console.log("Get item list error", error)
             })
         }).catch((error) => {
             console.log('Load order error: ', error)
@@ -74,30 +76,34 @@ function OrderDetail(props) {
                 <Row>
                     <Col>
                         <Card className='shadow'>
-                            <Container fluid>
-                                <Row>
-                                    <Col>
-                                        <div>Orderer: {order.orderer}</div>
-                                        <div>Email: {order.ordererEmail}</div>
-                                        <div>Phone: {order.ordererPhone}</div>
-                                    </Col>
-                                    <Col>
-                                        <div>Receiver: {order.receiver}</div>
-                                        <div>Address: {order.receiverAddress}</div>
-                                        <div>Phone: {order.receiverPhone}</div>
-                                    </Col>
-                                </Row>
-                                {order.items.map((item) => (
+                            {order === null
+                                ? <Spinner color='primary' />
+                                : <Container fluid>
                                     <Row>
-                                        <div>Product ID: {item.productid}</div>
-                                        <div>Title: {item.title}</div>
-                                        <div><img src={item.img} alt={item.title} /></div>
-                                        <div>Price: {item.price}</div>
-                                        <div>Quantity: {item.quantity}</div>
+                                        <Col>
+                                            <div>Orderer: {order.orderer}</div>
+                                            <div>Email: {order.ordererEmail}</div>
+                                            <div>Phone: {order.ordererPhone}</div>
+                                        </Col>
+                                        <Col>
+                                            <div>Receiver: {order.receiver}</div>
+                                            <div>Address: {order.receiverAddress}</div>
+                                            <div>Phone: {order.receiverPhone}</div>
+                                        </Col>
                                     </Row>
+                                    {order.items.map((item) => (
+                                        <Row>
+                                            <div>Product ID: {item.productid}</div>
+                                            <div>Title: {item.title}</div>
+                                            <div><img src={item.img} alt={item.title} /></div>
+                                            <div>Price: {item.price}</div>
+                                            <div>Quantity: {item.quantity}</div>
+                                        </Row>
 
-                                ))}
-                            </Container>
+                                    ))}
+                                </Container>
+                            }
+
                         </Card>
                     </Col>
                 </Row>
