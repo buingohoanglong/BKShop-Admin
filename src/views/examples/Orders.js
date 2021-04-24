@@ -42,10 +42,14 @@ import Header from "components/Headers/Header.js";
 import { useState } from "react";
 import { useEffect } from "react";
 import db from "firebase/firebase.config";
+import ChangeStatusModal from "components/ChangeStatusModal/ChangeStatusModal";
+import { FaCircle } from 'react-icons/fa';
+import { useHistory, useRouteMatch } from "react-router";
 
-
-const Tables = (props) => {
+const Orders = (props) => {
   const [orderList, setOrderList] = useState([])
+  const match = useRouteMatch()
+  const history = useHistory()
 
   useEffect(() => {
     db.collection('Orders').get().then((querySnapshot) => {
@@ -66,6 +70,14 @@ const Tables = (props) => {
     const orderRef = db.collection("Orders").doc(index)
     orderRef.delete()
   }
+  const statusColor = (status) => {
+    if (status.toLowerCase() === 'pending') return 'red'
+    else if (status.toLowerCase() === 'processing') return 'orange'
+    else if (status.toLowerCase() === 'delivered') return 'green'
+    else if (status.toLowerCase() === 'cancelled') return 'gray'
+  }
+
+
   return (
     <>
       <Header />
@@ -75,33 +87,25 @@ const Tables = (props) => {
         <Row>
           <div className="col">
             <Card className="shadow">
+
               <CardHeader className="border-0">
-                <h3 className="mb-0">Card tables</h3>
+                <h3 className="mb-0">Orders table</h3>
               </CardHeader>
-              <Table className="align-items-center table-flush" responsive>
+
+              <Table className="align-items-center table-hover" responsive>
                 <thead className="thead-light">
                   <tr>
+                    <th scope="col" />
                     <th scope="col">Order ID</th>
                     <th scope="col">Address</th>
                     <th scope="col">Status</th>
                     <th scope="col">Order Time</th>
-                    <th scope="col">Delivery Time</th>
-                    <th scope="col" />
+                    {/* <th scope="col">Delivery Time</th> */}
                   </tr>
                 </thead>
                 <tbody>
                   {orderList.map((order) => (
                     <tr>
-                      <th scope="row">{order.id}</th>
-                      <td>{order.address}</td>
-                      <td>
-                        <Badge color="" className="badge-dot mr-4">
-                          <i className="bg-warning" />
-                          {order.status}
-                        </Badge>
-                      </td>
-                      <td>{order.orderTime}</td>
-                      <td>{order.deliverTime}</td>
                       <td className="text-right">
                         <UncontrolledDropdown>
                           <DropdownToggle
@@ -114,29 +118,36 @@ const Tables = (props) => {
                           >
                             <i className="fas fa-ellipsis-v" />
                           </DropdownToggle>
-                          <DropdownMenu className="dropdown-menu-arrow" right>
+                          <DropdownMenu persist className="dropdown-menu-arrow" right>
                             <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
                             >
-                              Change Status
-                          </DropdownItem>
+                              <ChangeStatusModal orderid={order.id} orderstatus={order.status} />
+                            </DropdownItem>
                             <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
+                              href={`${match.url}/${order.id}`}
                             >
-                              Change Address
+                              Detail
                           </DropdownItem>
                             <DropdownItem
                               href="#pablo"
                               onClick={() => handleOnClickDeleteOrder(order.id)}
                             >
-                              Delete Order
-
+                              Delete
                           </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </td>
+                      <th scope="row">{order.id}</th>
+                      <td>{order.address}</td>
+                      <td>
+                        <Badge color="" className="badge-dot mr-4">
+                          {/* <i className="bg-warning" /> */}
+                          <FaCircle color={statusColor(order.status)} />{' '}
+                          {order.status.toLowerCase()}
+                        </Badge>
+                      </td>
+                      <td>{order.orderTime}</td>
+                      {/* <td>{order.deliverTime}</td> */}
                     </tr>
                   ))}
 
@@ -205,4 +216,4 @@ const Tables = (props) => {
   );
 };
 
-export default Tables;
+export default Orders;
