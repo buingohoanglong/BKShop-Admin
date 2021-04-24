@@ -39,8 +39,29 @@ import {
 } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
+import { useState } from "react";
+import { useEffect } from "react";
+import db from "firebase/firebase.config";
 
-const Tables = () => {
+const Tables = (props) => {
+  const [orderList, setOrderList] = useState([])
+
+  useEffect(() => {
+    db.collection('Orders').get().then((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const orderListPromise = querySnapshot.docs.map((orderDoc) => (
+          { ...orderDoc.data(), id: orderDoc.id }
+        ))
+
+        Promise.all(orderListPromise).then(newOrderList => {
+          console.log("Order List: ", newOrderList)
+          setOrderList(newOrderList)
+        })
+      }
+    })
+  }, [])
+
+
   return (
     <>
       <Header />
@@ -58,81 +79,69 @@ const Tables = () => {
                   <tr>
                     <th scope="col">Order ID</th>
                     <th scope="col">Address</th>
+                    <th scope="col">Status</th>
                     <th scope="col">Order Time</th>
                     <th scope="col">Delivery Time</th>
-                    <th scope="col">Status</th>
                     <th scope="col" />
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">
-                      001
-                    </th>
-                    <td>268 Lý Thường Kiệt, Phường 14, Quận 10, Thành phố Hồ Chí Minh</td>
-                    <td>
-                      April 23 2021
-                      {/* <Badge color="" className="badge-dot mr-4">
-                        <i className="bg-warning" />
-                        pending
-                      </Badge> */}
-                    </td>
-                    <td>
-                      April 24 2021
-                    </td>
-                    <td>
-                      <Badge color="" className="badge-dot mr-4">
-                        <i className="bg-warning" />
-                        cancelled
-                      </Badge>
-                      {/* <div className="d-flex align-items-center">
-                        <span className="mr-2">60%</span>
-                        <div>
-                          <Progress
-                            max="100"
-                            value="60"
-                            barClassName="bg-danger"
-                          />
-                        </div>
-                      </div> */}
-                    </td>
-                    <td className="text-right">
-                      <UncontrolledDropdown>
-                        <DropdownToggle
-                          className="btn-icon-only text-light"
-                          href="#pablo"
-                          role="button"
-                          size="sm"
-                          color=""
-                          onClick={(e) => e.preventDefault()}
-                        >
-                          <i className="fas fa-ellipsis-v" />
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-arrow" right>
-                          <DropdownItem
+                  {orderList.map((order) => (
+                    <tr>
+                      <th scope="row">{order.id}</th>
+                      <td>{order.address}</td>
+                      <td>
+                        <Badge color="" className="badge-dot mr-4">
+                          <i className="bg-warning" />
+                          {order.status}
+                        </Badge>
+                      </td>
+                      <td>{order.orderTime}</td>
+                      <td>{order.deliverTime}</td>
+                      <td className="text-right">
+                        <UncontrolledDropdown>
+                          <DropdownToggle
+                            className="btn-icon-only text-light"
                             href="#pablo"
+                            role="button"
+                            size="sm"
+                            color=""
                             onClick={(e) => e.preventDefault()}
                           >
-                            Change Status
+                            <i className="fas fa-ellipsis-v" />
+                          </DropdownToggle>
+                          <DropdownMenu className="dropdown-menu-arrow" right>
+                            <DropdownItem
+                              href="#pablo"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              Change Status
                           </DropdownItem>
-                          <DropdownItem
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            Delete
+                            <DropdownItem
+                              href="#pablo"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              Delete
                           </DropdownItem>
-                          <DropdownItem
-                            href="#pablo"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            Something else here
+                            <DropdownItem
+                              href="#pablo"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              Something else here
                           </DropdownItem>
-                        </DropdownMenu>
-                      </UncontrolledDropdown>
-                    </td>
-                  </tr>
+                          </DropdownMenu>
+                        </UncontrolledDropdown>
+                      </td>
+                    </tr>
+                  ))}
+
                 </tbody>
               </Table>
+
+
+
+
+
               <CardFooter className="py-4">
                 <nav aria-label="...">
                   <Pagination
@@ -185,6 +194,7 @@ const Tables = () => {
                   </Pagination>
                 </nav>
               </CardFooter>
+
             </Card>
           </div>
         </Row>
