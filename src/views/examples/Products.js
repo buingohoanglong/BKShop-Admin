@@ -41,12 +41,19 @@ import {
 import Header from "components/Headers/Header.js";
 import { useState } from "react";
 import { useEffect } from "react";
+
 import db from "firebase/firebase.config";
+import { Button, Col, Input, InputGroup, InputGroupAddon, InputGroupText, FormGroup, Form, Label } from "reactstrap";
+import { Modal, ModalBody, ModalHeader, ModalFooter } from 'reactstrap'
 
 const Tables = () => {
   const [productList, setProductList] = useState([])
+  const [productInfo, setProductInfo] = useState({})
+  const [idOfProduct,setIdOfProduct] = useState(0)
+  const [modalEditInfo, setModalEditInfo] = useState(false);
+  const toggleEditInfo = () => setModalEditInfo(!modalEditInfo);
 
-  useEffect(() => {
+  useEffect(async () => {
     db.collection('Products').get().then((querySnapshot) => {
       if (!querySnapshot.empty) {
         const productListPromise = querySnapshot.docs.map((productDoc) => (
@@ -60,6 +67,29 @@ const Tables = () => {
       }
     })
   }, [])
+
+
+  
+  const handleOnClickEditInfo = (id) => {
+    setProductInfo(productList.find(item => item.id === id))
+    setIdOfProduct(id)
+    setModalEditInfo(!modalEditInfo)
+    console.log("productList")
+  }
+
+  const handleSaveInfo = async () => {
+    const productRef = db.collection("Products").doc(idOfProduct)
+    const doc = await productRef.get()
+    productRef.set(productInfo)
+    setModalEditInfo(!modalEditInfo)
+  }
+
+  const handleOnClickDeleteItem = (id) => {
+    const productRef = db.collection("Products").doc(id);
+    // const newProductList = productList.filter((value,id) => value != id)
+    setProductList(productList.filter((value,id) => value != id))
+    productRef.delete()
+  }
 
   return (
     <>
@@ -80,7 +110,7 @@ const Tables = () => {
                     <th scope="col">Product Id</th>
                     <th scope="col">Price</th>
                     <th scope="col">Rating</th>
-                    {/* <th scope="col">Specification</th> */}
+                    <th scope="col">Quantity</th>
                     <th scope="col" />
                   </tr>
                 </thead>
@@ -110,7 +140,7 @@ const Tables = () => {
                       <td>{product.id}</td>
                       <td>{product.price}</td>
                       <td>{product.rating}</td>
-                      {/* <td>{product.specification}</td> */}
+                      <td>{product.quantity}</td>
                       <td className="text-right">
                         <UncontrolledDropdown>
                           <DropdownToggle
@@ -124,24 +154,15 @@ const Tables = () => {
                             <i className="fas fa-ellipsis-v" />
                           </DropdownToggle>
                           <DropdownMenu className="dropdown-menu-arrow" right>
-                            <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
-                            >
-                              Change Information
-                          </DropdownItem>
-                            <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
-                            >
+                            <DropdownItem href="#" onClick={() => handleOnClickEditInfo (product.id)}>
+                              Edit Information
+                            </DropdownItem>
+                            <DropdownItem href="#" onClick={() => handleOnClickDeleteItem(product.id)}>
                               Delete Item
-                          </DropdownItem>
-                            <DropdownItem
-                              href="#pablo"
-                              onClick={(e) => e.preventDefault()}
-                            >
+                            </DropdownItem>
+                            <DropdownItem href="#" onClick={(e) => e.preventDefault()}>
                               Something else here
-                          </DropdownItem>
+                            </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </td>
@@ -204,6 +225,47 @@ const Tables = () => {
             </Card>
           </div>
         </Row>
+      
+
+        <Modal isOpen={modalEditInfo} toggle={toggleEditInfo}>
+          <ModalHeader toggle={toggleEditInfo}>Edit Information</ModalHeader>
+          
+          <ModalBody>
+              <Form>
+                  <FormGroup>
+                    <Label for="name">Product's name:</Label>
+                    <Input placeholder="name" value={productInfo.title}
+                    onChange={event => setProductInfo({...productInfo, title: event.target.value})}
+                    />
+                  </FormGroup>       
+                  <br/>
+                  
+                  <FormGroup>
+                      <Label for="price">Price:</Label>
+                      <Input placeholder="price" value={productInfo.price}
+                      onChange={event => setProductInfo({...productInfo, price: event.target.value})}
+                      />
+                  </FormGroup>
+                  <br/>
+
+                  <FormGroup>
+                      <Label for="quantity">Quantity:</Label>
+                      <Input type="number" placeholder="quantity" value={productInfo.quantity}
+                      onChange={event => setProductInfo({...productInfo, quantity: event.target.value})}
+                      />
+                  </FormGroup>
+              </Form>
+          </ModalBody>
+
+          <ModalFooter>
+              <Button color="primary" onClick={handleSaveInfo}>
+                  Save
+              </Button>{" "}
+              <Button color="secondary" onClick={toggleEditInfo}>
+                  Cancel
+              </Button>
+          </ModalFooter>
+        </Modal>
       </Container>
     </>
   );
