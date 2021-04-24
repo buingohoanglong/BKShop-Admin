@@ -42,50 +42,58 @@ function ChangeStatusModal(props) {
                     <Form>
                         {/* {console.log("Status: ", status)} */}
                         <FormGroup className='row'>
-                            <Label className='col'>
-                                <Input
-                                    type="radio"
-                                    checked={status === 'pending'}
-                                    name="status"
-                                    value='pending'
-                                    onChange={(e) => setStatus(e.target.value)}
-                                />
-                                {' '}
-                                pending
-                            </Label>
-                            <Label className='col'>
-                                <Input
-                                    type="radio"
-                                    checked={status === 'processing'}
-                                    name="status"
-                                    value='processing'
-                                    onChange={(e) => setStatus(e.target.value)}
-                                />
-                                {' '}
-                                processing
-                            </Label>
-                            <Label className='col'>
-                                <Input
-                                    type="radio"
-                                    checked={status === 'delivered'}
-                                    name="status"
-                                    value='delivered'
-                                    onChange={(e) => setStatus(e.target.value)}
-                                />
-                                {' '}
-                                delivered
-                            </Label>
-                            <Label className='col'>
-                                <Input
-                                    type="radio"
-                                    checked={status === 'cancelled'}
-                                    name="status"
-                                    value='cancelled'
-                                    onChange={(e) => setStatus(e.target.value)}
-                                />
-                                {' '}
-                                cancelled
-                            </Label>
+                            {['processing', 'cancelled'].includes(orderstatus) &&
+                                <Label className='col'>
+                                    <Input
+                                        type="radio"
+                                        checked={status === 'pending'}
+                                        name="status"
+                                        value='pending'
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    />
+                                    {' '}
+                                    pending
+                                </Label>
+                            }
+                            {['pending', 'delivered', 'cancelled'].includes(orderstatus) &&
+                                <Label className='col'>
+                                    <Input
+                                        type="radio"
+                                        checked={status === 'processing'}
+                                        name="status"
+                                        value='processing'
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    />
+                                    {' '}
+                                    processing
+                                </Label>
+                            }
+                            {['processing', 'cancelled'].includes(orderstatus) &&
+                                <Label className='col'>
+                                    <Input
+                                        type="radio"
+                                        checked={status === 'delivered'}
+                                        name="status"
+                                        value='delivered'
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    />
+                                    {' '}
+                                    delivered
+                                </Label>
+                            }
+                            {['pending', 'processing', 'delivered'].includes(orderstatus) &&
+                                <Label className='col'>
+                                    <Input
+                                        type="radio"
+                                        checked={status === 'cancelled'}
+                                        name="status"
+                                        value='cancelled'
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    />
+                                    {' '}
+                                    cancelled
+                                </Label>
+                            }
                         </FormGroup>
                     </Form>
                 </ModalBody>

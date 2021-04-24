@@ -120,10 +120,10 @@ const Orders = (props) => {
                             <i className="fas fa-ellipsis-v" />
                           </DropdownToggle>
                           <DropdownMenu persist className="dropdown-menu-arrow" right>
-                            <DropdownItem
+                            {/* <DropdownItem
                             >
-                              <ChangeStatusModal orderid={order.id} orderstatus={order.status} />
-                            </DropdownItem>
+                              <ChangeStatusModal orderid={order.id} orderstatus={order.status.toLowerCase()} />
+                            </DropdownItem> */}
                             <DropdownItem
                               href={`${match.url}/${order.id}`}
                             >
