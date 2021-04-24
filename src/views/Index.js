@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 // node.js library that concatenates classes (strings)
 import classnames from "classnames";
 // javascipt plugin for creating charts
@@ -47,6 +47,7 @@ import {
 } from "variables/charts.js";
 
 import Header from "components/Headers/Header.js";
+import db from "firebase/firebase.config";
 
 const Index = (props) => {
   const [activeNav, setActiveNav] = useState(1);
@@ -61,6 +62,19 @@ const Index = (props) => {
     setActiveNav(index);
     setChartExample1Data("data" + index);
   };
+
+  // test firebase connection
+  useEffect(() => {
+    db.collection("Users").get().then((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        querySnapshot.docs.forEach(user => {
+          console.log("User ID: ", user.id)
+        });
+      }
+    }).catch((error) => {
+      console.log("Test Error: ", error)
+    })
+  }, [])
   return (
     <>
       <Header />
