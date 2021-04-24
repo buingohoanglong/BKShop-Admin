@@ -48,6 +48,7 @@ import {
 
 import Header from "components/Headers/Header.js";
 import db from "firebase/firebase.config";
+import { getNodeMajorVersion, isJSDocAugmentsTag } from "typescript";
 
 const Index = (props) => {
   const [activeNav, setActiveNav] = useState(1);
@@ -66,6 +67,10 @@ const Index = (props) => {
     others: 8,
   }
 
+
+  const [chartOrderData, setChartOrderData] = useState(Array(12).fill(0))
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
   useEffect(() => {
     // load brand chart data
     db.collection('Products').get().then((querySnapshot) => {
@@ -80,6 +85,24 @@ const Index = (props) => {
       })
       console.log("Brand data: ", data)
       setChartBrandData(data)
+    })
+  }, [])
+
+  useEffect(() => {
+    // get order data accoring to month
+    db.collection('Orders').get().then((querySnapshot) => {
+      const data = Array(12).fill(0)
+      querySnapshot.docs.forEach((orderDoc) => {
+        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderYear = orderTime.getFullYear()
+        const thisYear = new Date(Date.now()).getFullYear()
+        if (orderYear === thisYear) {
+          const orderMonth = orderTime.getMonth()
+          data[orderMonth] += 1
+        }
+      })
+      console.log("Order data: ", data)
+      setChartOrderData(data)
     })
   }, [])
 
@@ -112,7 +135,7 @@ const Index = (props) => {
       <Container className="mt--7" fluid>
         <Row>
 
-          <Col className="mb-5 mb-xl-0" xl="8">
+          <Col className="mb-5 mb-xl-0" xl="6">
             {/* Sale chart */}
             <Card className="bg-gradient-default shadow">
               <CardHeader className="bg-transparent">
@@ -168,7 +191,7 @@ const Index = (props) => {
           </Col>
 
           {/* Order chart */}
-          <Col xl="4">
+          <Col xl="6">
             <Card className="shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
@@ -184,8 +207,46 @@ const Index = (props) => {
                 {/* Chart */}
                 <div className="chart">
                   <Bar
-                    data={chartExample2.data}
-                    options={chartExample2.options}
+                    data={{
+                      labels: months,
+                      datasets: [
+                        {
+                          label: "Orders",
+                          data: [...chartOrderData],
+                          maxBarThickness: 10,
+                        },
+                      ],
+                    }}
+                    options={{
+                      scales: {
+                        yAxes: [
+                          {
+                            ticks: {
+                              callback: function (value) {
+                                if (!(value % Math.round(Math.max(chartOrderData) / 10))) {
+                                  //return '$' + value + 'k'
+                                  return value;
+                                }
+                              },
+                            },
+                          },
+                        ],
+                      },
+                      tooltips: {
+                        callbacks: {
+                          label: function (item, data) {
+                            var label = data.datasets[item.datasetIndex].label || "";
+                            var yLabel = item.yLabel;
+                            var content = "";
+                            if (data.datasets.length > 1) {
+                              content += label;
+                            }
+                            content += yLabel;
+                            return content;
+                          },
+                        },
+                      },
+                    }}
                   />
                 </div>
               </CardBody>
@@ -196,7 +257,7 @@ const Index = (props) => {
 
 
         <Row className='justify-content-start my-4'>
-          <Col xl='6'>
+          <Col xl='12'>
             <Card className="shadow">
               <CardHeader className="bg-gradient-default">
                 <Row className="align-items-center">
@@ -218,7 +279,7 @@ const Index = (props) => {
                         {
                           label: "Products",
                           data: [...chartBrandData],
-                          maxBarThickness: 20,
+                          maxBarThickness: 40,
                           backgroundColor: 'white',
                         },
                       ]
