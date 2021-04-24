@@ -25,6 +25,7 @@ import AdminFooter from "components/Footers/AdminFooter.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routes from "routes.js";
+import OrderDetail from "views/examples/OrderDetail";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
@@ -41,6 +42,7 @@ const Admin = (props) => {
       if (prop.layout === "/admin") {
         return (
           <Route
+            exact
             path={prop.layout + prop.path}
             component={prop.component}
             key={key}
@@ -82,6 +84,9 @@ const Admin = (props) => {
         />
         <Switch>
           {getRoutes(routes)}
+          <Route path='/admin/orders/:id'>
+            <OrderDetail />
+          </Route>
           <Redirect from="*" to="/admin/index" />
         </Switch>
         <Container fluid>
