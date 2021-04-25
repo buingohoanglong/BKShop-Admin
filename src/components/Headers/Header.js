@@ -31,29 +31,50 @@ const Header = () => {
   const [numOrders, setNumOrders] = useState(0)
 
   useEffect(() => {
+    // get number of users
     db.collection('Users').get().then((querySnapshot) => {
       setNumUsers(querySnapshot.docs.length)
     })
   }, [])
 
   useEffect(() => {
+    // get number of product type
     db.collection('Products').get().then((querySnapshot) => {
       setNumProducts(querySnapshot.docs.length)
     })
   }, [])
 
   useEffect(() => {
-    db.collection('Products').get().then((querySnapshot) => {
-      const currentSales = querySnapshot.docs.reduce((sum, productDoc) => (
-        sum + (productDoc.data().sales ? productDoc.data().sales : 0)
-      ), 0)
-      setSales(currentSales)
+    // get current year sales
+    db.collection('Orders').get().then((querySnapshot) => {
+      const yearSales = querySnapshot.docs.reduce((sum, orderDoc) => {
+        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderYear = orderTime.getFullYear()
+        const thisYear = new Date(Date.now()).getFullYear()
+        if (orderYear === thisYear) {
+          if (orderDoc.data().status == 'delivered') {
+            return sum + orderDoc.data().items.reduce((subsum, item) => subsum + item.quantity, 0)
+          } else return sum
+        } else return sum
+      }, 0)
+
+      console.log('Year Sales: ', yearSales)
+      setSales(yearSales)
     })
   }, [])
 
   useEffect(() => {
+    // get number of orders current year
     db.collection('Orders').get().then((querySnapshot) => {
-      setNumOrders(querySnapshot.docs.length)
+      const yearOrders = querySnapshot.docs.reduce((sum, orderDoc) => {
+        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderYear = orderTime.getFullYear()
+        const thisYear = new Date(Date.now()).getFullYear()
+        return orderYear === thisYear ? sum + 1 : 0
+      }, 0)
+
+      console.log('Number order this year: ', yearOrders)
+      setNumOrders(yearOrders)
     })
   }, [])
 
