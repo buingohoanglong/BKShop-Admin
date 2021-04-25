@@ -74,7 +74,19 @@ const Tables = () => {
 
   const [modalEditProduct, setModalEditProduct] = useState(false)
   
-  const toggleModalEditProduct = () => setModalEditProduct(!modalEditProduct)
+  const toggleModalEditProduct = () => {
+    setModalEditProduct(!modalEditProduct)
+    setProduct({})
+    setProduct({})
+    // console.log(doc.data())
+    setSpecification({})
+    // // console.log(specification)
+    setFileImageThumb([])
+    // console.log(doc.data().imgList)
+    setListFileImages([])
+    // console.log(listFileImages)
+    setListFIleImagesBeforeUpdate([])
+  }
   // const user = useSelector(state => state.user)
 
   const storageRef = storage.ref()
@@ -89,9 +101,10 @@ const Tables = () => {
 
   const handleAddProduct = async () => {
     // console.log(product)
-    const newProduct = { ...product, detail: [], specification: {} }
+    const newProduct = { ...product, specification: {} }
 
-    newProduct.detail.push(product.detail ? product.detail: "")
+    // newProduct.detail.push(product.detail ? product.detail: "")
+    newProduct.detail = product.detail ? product.detail : ""
     newProduct.specification = specification
     newProduct.img = ""
     newProduct.imgList = []
@@ -220,21 +233,72 @@ const Tables = () => {
 
 
 
-  const handleDeleteProduct = (productID) => {
+  const handleDeleteProduct = async (productID) => {
+
+    let statusOfProduct = false
+    const listOrders = []
+    const orderRef = db.collection("Orders")
+    const querySnapshot = await orderRef.get()
+    // console.log(querySnapshot)
+    querySnapshot.forEach((doc) => {
+      // console.log(doc.id , doc.data())
+      doc.data().items.forEach((item) => {
+        if(item.productid === productID && ( doc.data().status.toLowerCase() === "pending" || doc.data().status.toLowerCase() === "processing" ) ) {
+          statusOfProduct = true
+          listOrders.push(doc.id)
+        }
+      })
+    })
+    // console.log(listOrders)
+
+
+
     confirmAlert({
       customUI: ({ onClose }) => {
         return (
           <div className='custom-ui'>
             <h1>Are you sure?</h1>
-            <p>You want to delete this file?</p>
+            <p>{statusOfProduct ? "The product is in some processing order. Delete it?" : "You want to delete this product?"}</p>
             <Button onClick={onClose}>No</Button>
             <Button
               onClick={() => {
-                console.log(productID)
+                // console.log(productID)
                 db.collection("Products").doc(productID).delete().then(() => {
                   const productListAfterDelete = productList.filter((product) => product.id !== productID)
                   setProductList(productListAfterDelete)
                 })
+
+                // listOrders.forEach((orderID)=> {
+                //   orderRef.doc(orderID).items().forEach((item) => {
+
+                //   }, (err) => {
+                //     console.log(err)
+                //   }})
+                listOrders.forEach(orderID => {
+                  orderRef.doc(orderID).get().then((snapshot) => {
+                    const listItemsInOrder = snapshot.data().items
+                    const listItemsAfterFilter = listItemsInOrder.filter((item) => item.productid !== productID)
+                    if(listItemsAfterFilter.length === 0) {
+                      orderRef.doc(orderID).delete().then(() => {
+                        console.log("Delete order success")
+                      })
+                    } else {
+                      orderRef.doc(orderID).update({
+                        items: listItemsAfterFilter
+                      }).then(() => {
+                        console.log("Update success")
+                      })
+                    }
+
+                  })
+
+
+
+                })
+                
+
+
+
 
                 onClose();
                 alert.success("Delete success", {
@@ -248,7 +312,6 @@ const Tables = () => {
         );
       }
     });
-    console.log(productID)
   }
 
   const handleEditProduct = (productID) => {
@@ -301,7 +364,7 @@ const Tables = () => {
     db.collection("Products").doc(productID).set({
       ...updateProduct, imgList: originalImagesList
     }).then(() => {
-      console.log("Update product success")
+      alert.success("Edit product success")
     })
 
     if(listFileImagesAfterFilter.length > 0) {
@@ -413,10 +476,10 @@ const Tables = () => {
                       <td>
                         {product.quantity}
                       </td>
-                      <td className="d-flex">
+                      <td className="">
                         
-                        <span className="d-flex align-self-center">{product.rating}</span>
-                        <span className="d-flex align-self-center">{Array(product.rating).fill().map((_,i) => <AiFillStar style={{ cursor: 'pointer'}} size={15} color='red' />)}</span>
+                        <span className="">{product.rating}</span>
+                        <span className="">{Array(product.rating).fill().map((_,i) => <AiFillStar style={{ cursor: 'pointer'}} size={15} color='red' />)}</span>
 
                       </td>
                       <td className="text-right">
@@ -434,15 +497,15 @@ const Tables = () => {
                           <DropdownMenu className="dropdown-menu-arrow" right>
                             <DropdownItem
                               href="#pablo"
-                              onClick={() => handleDeleteProduct(product.id)}
-                            >
-                              Delete product
-                            </DropdownItem>
-                            <DropdownItem
-                              href="#pablo"
                               onClick={() => handleEditProduct(product.id)}
                             >
                               Edit product
+                            </DropdownItem>
+                            <DropdownItem
+                              href="#pablo"
+                              onClick={() => handleDeleteProduct(product.id)}
+                            >
+                              Delete product
                             </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
