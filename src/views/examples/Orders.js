@@ -45,7 +45,7 @@ import db from "firebase/firebase.config";
 import ChangeStatusModal from "components/ChangeStatusModal/ChangeStatusModal";
 
 
-const Tables = (props) => {
+const Orders = (props) => {
   const [orderList, setOrderList] = useState([])
 
   useEffect(() => {
