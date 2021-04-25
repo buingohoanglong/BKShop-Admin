@@ -16,6 +16,7 @@
 
 */
 import React from "react";
+import { useHistory, useRouteMatch } from "react-router";
 import { Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
 import { useAlert } from 'react-alert'
 import { confirmAlert } from 'react-confirm-alert'; // Import
@@ -55,6 +56,8 @@ import { merge } from "jquery";
 
 
 const Tables = () => {
+
+  const match = useRouteMatch()
 
   const [productList, setProductList] = useState([])
 
@@ -429,7 +432,7 @@ const Tables = () => {
             <div className="col">
               <Card className="shadow">
                 <CardHeader className="border-0">
-                  <h3 className="mb-0">Card tables</h3>
+                  <h3 className="mb-0">Products table</h3>
                 </CardHeader>
                 <Table className="align-items-center table-flush" responsive>
                   <thead className="thead-light">
@@ -507,6 +510,12 @@ const Tables = () => {
                             >
                               Delete product
                             </DropdownItem>
+
+                            <DropdownItem
+                                href={`${match.url}/${product.id}`}
+                              >
+                                Details
+                              </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </td>
