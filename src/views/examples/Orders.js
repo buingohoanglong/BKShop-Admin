@@ -45,6 +45,7 @@ import db from "firebase/firebase.config";
 import ChangeStatusModal from "components/ChangeStatusModal/ChangeStatusModal";
 import { FaCircle } from 'react-icons/fa';
 import { useHistory, useRouteMatch } from "react-router";
+import Filter from "components/Filter/FIlter";
 
 
 const Orders = (props) => {
@@ -52,8 +53,20 @@ const Orders = (props) => {
   const match = useRouteMatch()
   const history = useHistory()
 
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [timeFilter, setTimeFilter] = useState('Last 15 orders')
+  // const [currentOrderList, setCurrentOrderList] = useState([])
+
   useEffect(() => {
-    db.collection('Orders').get().then((querySnapshot) => {
+    const limit = extractLimit(timeFilter)
+
+    const statusFilterOrderRef = statusFilter === 'All'
+      ? db.collection('Orders').orderBy('orderTime', 'desc')
+      : db.collection('Orders').where('status', '==', statusFilter).orderBy('orderTime', 'desc')
+
+    const orderRef = limit === Infinity ? statusFilterOrderRef : statusFilterOrderRef.limit(limit)
+
+    orderRef.get().then((querySnapshot) => {
       if (!querySnapshot.empty) {
         const orderListPromise = querySnapshot.docs.map((orderDoc) => (
           { ...orderDoc.data(), id: orderDoc.id }
@@ -65,7 +78,13 @@ const Orders = (props) => {
         })
       }
     })
-  }, [])
+  }, [statusFilter, timeFilter])
+
+  // useEffect(() => {
+  //   const newOrderList = orderList.filter(order => (statusFilter === 'All') || (order.status === statusFilter))
+  //   console.log('current orderlist: ', newOrderList)
+  //   setCurrentOrderList(newOrderList)
+  // }, [orderList, statusFilter])
 
   const handleOnClickDeleteOrder = (index) => {
     const orderRef = db.collection("Orders").doc(index)
@@ -79,6 +98,13 @@ const Orders = (props) => {
     else if (status.toLowerCase() === 'cancelled') return 'gray'
   }
 
+  const extractLimit = (field) => {
+    if (field === "Last 5 orders") return 5
+    else if (field === "Last 15 orders") return 15
+    else if (field === "Last 30 orders") return 30
+    else if (field === "Last 50 orders") return 50
+    else if (field === "All") return Infinity
+  }
 
   return (
     <>
@@ -88,7 +114,7 @@ const Orders = (props) => {
         {/* Table */}
         <Row>
           <div className="col">
-            <Card className="shadow">
+            <Card className="shadow" style={{ minHeight: '50vh' }}>
 
               <CardHeader className="border-0">
                 <h3 className="mb-0">Orders table</h3>
@@ -100,12 +126,33 @@ const Orders = (props) => {
                     <th scope="col" />
                     <th scope="col">Order ID</th>
                     <th scope="col">Address</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Order Time</th>
+                    <th scope="col">
+                      <div className='d-flex'>
+                        <div className='align-middle '>Status</div>
+                        <Filter
+                          header='Status'
+                          onChangeFilter={(status) => setStatusFilter(status)}
+                          title={statusFilter}
+                          fields={['All', 'pending', 'processing', 'delivered', 'cancelled']}
+                        />
+                      </div>
+
+                    </th>
+                    <th scope="col" >
+                      <div className='d-flex'>
+                        <div className='align-middle'>Order Time</div>
+                        <Filter
+                          header='Order Time'
+                          onChangeFilter={(status) => setTimeFilter(status)}
+                          title={timeFilter}
+                          fields={['All', 'Last 5 orders', 'Last 15 orders', 'Last 30 orders', 'Last 50 orders']}
+                        />
+                      </div>
+                    </th>
                     {/* <th scope="col">Delivery Time</th> */}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody style={{ minHeight: '500px' }}>
                   {orderList.map((order) => (
                     <tr>
                       <td className="text-right">
