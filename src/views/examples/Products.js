@@ -78,6 +78,10 @@ const Tables = () => {
 
   const [modalEditProduct, setModalEditProduct] = useState(false)
 
+  const [searchList, setSearchList] = useState([])
+
+  const [searchPattern, setSearchPattern] = useState([])
+
   const toggleModalEditProduct = () => {
     setModalEditProduct(!modalEditProduct)
     setProduct({})
@@ -171,23 +175,23 @@ const Tables = () => {
       }
       const uploadTask = storageRef.child(`images/products/${file.name}`).put(file, metadata)
       uploadTask.on('state_changed',
-          (snapshot) => {
-          },
-          (error) => {
-              // Handle unsuccessful uploads
-              console.log(error)
-          },
-          () => {
-              uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                  console.log(downloadURL)
-                  
-                  db.collection("Products").doc(productID).set({
-                    imgList: firebase.firestore.FieldValue.arrayUnion(downloadURL),
-                  },{merge: true}).then(() => {
-                    console.log("Update image list success")
-                  })
-              });
-          }
+        (snapshot) => {
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+          console.log(error)
+        },
+        () => {
+          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+            console.log(downloadURL)
+
+            db.collection("Products").doc(productID).set({
+              imgList: firebase.firestore.FieldValue.arrayUnion(downloadURL),
+            }, { merge: true }).then(() => {
+              console.log("Update image list success")
+            })
+          });
+        }
       );
     })
 
@@ -423,6 +427,25 @@ const Tables = () => {
   }
 
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    const searchPattern = e.target.value.toLowerCase().trim()
+    // console.log(searchPattern)
+    setSearchPattern(searchPattern)
+  }
+
+  useEffect(() => {
+    setSearchList(productList.filter(product =>
+      searchPattern === '' ? true :
+        (product.title.toLowerCase().includes(searchPattern) ||
+          product.id.toLowerCase().trim().includes(searchPattern) ||
+          product.specification.brand.toLowerCase().trim().includes(searchPattern) ||
+          searchPattern.includes(product.specification.brand) ||
+          searchPattern.includes(product.title)
+        )
+    ))
+  }, [productList, searchPattern])
+
 
 
 
@@ -437,6 +460,13 @@ const Tables = () => {
             <Card className="shadow">
               <CardHeader className="border-0">
                 <h3 className="mb-0">Products table</h3>
+                <Input
+                  type='text'
+                  placeholder='Search...'
+                  name='search'
+                  value={searchPattern}
+                  onChange={handleSearch}
+                />
               </CardHeader>
               <Table className="align-items-center table-flush" responsive>
                 <thead className="thead-light">
@@ -450,7 +480,7 @@ const Tables = () => {
                   </tr>
                 </thead>
                 {
-                  productList.length > 0 && productList.map((product) => (
+                  searchList.length > 0 && searchList.map((product) => (
 
                     <tbody>
                       <tr>
