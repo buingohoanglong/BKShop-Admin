@@ -21,51 +21,54 @@ function OrderDetail(props) {
         db.collection('Orders').doc(orderid).get().then((orderDoc) => {
             const { items, userid, orderTime, deliverTime, status, address, phone, receiver } = orderDoc.data()
 
-            const itemsPromise = items.map((item) => {
-                // get item title, image
-                return db.collection('Products').doc(item.productid).get().then((productDoc) => (
-                    {
-                        title: productDoc.data().title,
-                        img: productDoc.data().img,
-                        price: item.price,
-                        quantity: item.quantity,
-                        productid: productDoc.id,
-                        totalQuantity: productDoc.data().quantity,
-                        sales: productDoc.data().sales
-                    }
-                )).catch((error) => {
-                    console.log("Get item error: ", error)
-                })
-            })
+            // const itemsPromise = items.map((item) => {
+            //     // get item title, image
+            //     return db.collection('Products').doc(item.productid).get().then((productDoc) => (
+            //         {
+            //             title: productDoc.data().title,
+            //             img: productDoc.data().img,
+            //             price: item.price,
+            //             quantity: item.quantity,
+            //             productid: productDoc.id,
+            //             totalQuantity: productDoc.data().quantity,
+            //             sales: productDoc.data().sales
+            //         }
+            //     )).catch((error) => {
+            //         console.log("Get item error: ", error)
+            //     })
+            // })
 
             // set order
-            Promise.all(itemsPromise).then((newItems) => {
-                // get user
-                db.collection('Users').doc(userid).get().then((userDoc) => {
-                    const newOrder = {
-                        // order info
-                        orderid: orderDoc.id,
-                        orderTime: orderTime,
-                        deliverTime: deliverTime,
-                        status: status,
-                        items: [...newItems],
-                        // receiver info
-                        receiver: receiver,
-                        receiverAddress: address,
-                        receiverPhone: phone,
-                        // orderer info
-                        orderer: userDoc.data().displayName,
-                        ordererEmail: userDoc.data().email,
-                        ordererPhone: userDoc.data().phone,
-                    }
-                    console.log("Order: ", newOrder)
-                    setOrder(newOrder)
-                }).catch((error) => {
-                    console.log('Get user error: ', error)
-                })
+            // get user
+            db.collection('Users').doc(userid).get().then((userDoc) => {
+                const newOrder = {
+                    // order info
+                    orderid: orderDoc.id,
+                    orderTime: orderTime,
+                    deliverTime: deliverTime,
+                    status: status,
+                    items: [...items],
+                    // receiver info
+                    receiver: receiver,
+                    receiverAddress: address,
+                    receiverPhone: phone,
+                    // orderer info
+                    orderer: userDoc.data().displayName,
+                    ordererEmail: userDoc.data().email,
+                    ordererPhone: userDoc.data().phone,
+                }
+                console.log("Order: ", newOrder)
+                setOrder(newOrder)
             }).catch((error) => {
-                console.log("Get item list error", error)
+                console.log('Get user error: ', error)
             })
+
+
+            // Promise.all(itemsPromise).then((newItems) => {
+
+            // }).catch((error) => {
+            //     console.log("Get item list error", error)
+            // })
         }).catch((error) => {
             console.log('Load order error: ', error)
         })
