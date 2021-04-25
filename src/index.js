@@ -27,6 +27,9 @@ import AdminLayout from "layouts/Admin.js";
 import AuthLayout from "layouts/Auth.js";
 import { transitions, positions, Provider as AlertProvider } from 'react-alert'
 import AlertTemplate from 'react-alert-template-basic'
+import { AuthProvider } from "AuthContext/AuthContext";
+import PrivateRoute from "components/PrivateRoute/PrivateRoute";
+import { useAuth } from "AuthContext/AuthContext";
 
 const options = {
   // you can also just use 'bottom center'
@@ -41,11 +44,15 @@ const options = {
 ReactDOM.render(
   <AlertProvider template={AlertTemplate} {...options}>
     <BrowserRouter>
-      <Switch>
-        <Route path="/admin" render={(props) => <AdminLayout {...props} />} />
-        <Route path="/auth" render={(props) => <AuthLayout {...props} />} />
-        <Redirect from="/" to="/admin/index" />
-      </Switch>
+      <AuthProvider>
+
+        <Switch>
+          {/* <Route path="/admin" render={(props) => { return currentUser ?   <AdminLayout {...props}  />  : <Redirect to="/auth" /> }   } /> */}
+          <PrivateRoute path="/admin" component={AdminLayout}></PrivateRoute>
+          <Route path="/auth" render={(props) => <AuthLayout {...props} />} />
+          <Redirect from="/" to="/auth" />
+        </Switch>
+      </AuthProvider>
     </BrowserRouter>
   </AlertProvider>
 ,

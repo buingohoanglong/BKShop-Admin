@@ -28,3 +28,4 @@ var storage = firebase.storage();
 
 export default db;
 export { storage, firebase }
+export const auth = firebase.auth()

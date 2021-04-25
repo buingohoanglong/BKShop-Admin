@@ -137,9 +137,9 @@ const Tables = () => {
                             <DropdownItem href="#" onClick={() => handleOnClickEditInfo (user.id)}>
                               Edit Information
                             </DropdownItem>
-                            <DropdownItem href="#" onClick={() => handleOnClickDeleteUser(user.id)}>
+                            {/* <DropdownItem href="#" onClick={() => handleOnClickDeleteUser(user.id)}>
                               Delete User
-                            </DropdownItem>
+                            </DropdownItem> */}
                             
                           </DropdownMenu>
                         </UncontrolledDropdown>
