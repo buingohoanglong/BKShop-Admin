@@ -112,6 +112,8 @@ const Tables = () => {
     newProduct.sales = 0
     console.log(newProduct)
 
+    console.log(listFileImages)
+    console.log(fileImageThumb)
 
     db.collection("Products").add(newProduct)
       .then((res) => {
@@ -169,6 +171,7 @@ const Tables = () => {
           },
           (error) => {
               // Handle unsuccessful uploads
+              console.log(error)
           },
           () => {
               uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
