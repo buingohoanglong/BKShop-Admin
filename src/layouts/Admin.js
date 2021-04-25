@@ -26,6 +26,8 @@ import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routes from "routes.js";
 import OrderDetail from "views/examples/OrderDetail";
+import ProductDetail from "views/examples/ProductDetail";
+
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
@@ -87,6 +89,11 @@ const Admin = (props) => {
           <Route path='/admin/orders/:id'>
             <OrderDetail />
           </Route>
+
+          <Route path='/admin/products/:id'>
+            <ProductDetail />
+          </Route>
+
           <Redirect from="*" to="/admin/index" />
         </Switch>
         <Container fluid>
