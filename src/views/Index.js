@@ -334,7 +334,7 @@ const Index = (props) => {
                             if (data.datasets.length > 1) {
                               content += label;
                             }
-                            content += yLabel + ' items';
+                            content += yLabel + ' orders';
                             return content;
                           },
                         },
