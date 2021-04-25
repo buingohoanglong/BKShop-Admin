@@ -201,8 +201,8 @@ const Index = (props) => {
                           href="#pablo"
                           onClick={(e) => toggleNavs(e, 1)}
                         >
-                          <span className="d-none d-md-block">Month</span>
-                          <span className="d-md-none">M</span>
+                          <span className="d-none d-md-block">Year</span>
+                          <span className="d-md-none">Y</span>
                         </NavLink>
                       </NavItem>
                       <NavItem>
@@ -214,8 +214,8 @@ const Index = (props) => {
                           href="#pablo"
                           onClick={(e) => toggleNavs(e, 2)}
                         >
-                          <span className="d-none d-md-block">Week</span>
-                          <span className="d-md-none">W</span>
+                          <span className="d-none d-md-block">Month</span>
+                          <span className="d-md-none">M</span>
                         </NavLink>
                       </NavItem>
                     </Nav>
