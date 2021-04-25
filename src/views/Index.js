@@ -265,7 +265,7 @@ const Index = (props) => {
                               content += label;
                             }
 
-                            content += "$" + yLabel + "k";
+                            content += yLabel + ' items';
                             return content;
                           },
                         },
@@ -334,7 +334,7 @@ const Index = (props) => {
                             if (data.datasets.length > 1) {
                               content += label;
                             }
-                            content += yLabel;
+                            content += yLabel + ' items';
                             return content;
                           },
                         },
@@ -397,7 +397,7 @@ const Index = (props) => {
                             if (data.datasets.length > 1) {
                               content += label;
                             }
-                            content += yLabel;
+                            content += yLabel + ' items';
                             return content;
                           },
                         },
