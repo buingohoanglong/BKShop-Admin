@@ -16,7 +16,7 @@
 
 */
 import React from "react";
-import {Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
 import { useAlert } from 'react-alert'
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
@@ -56,21 +56,21 @@ import { merge } from "jquery";
 
 const Tables = () => {
 
-  const [productList,setProductList] = useState([])
+  const [productList, setProductList] = useState([])
 
-  const [modalAddProduct,setModalAddProduct] = useState(false)
+  const [modalAddProduct, setModalAddProduct] = useState(false)
 
   const toggleModalAddProduct = () => setModalAddProduct(!modalAddProduct)
 
-  const [product,setProduct] = useState({})
+  const [product, setProduct] = useState({})
 
-  const [specification,setSpecification] = useState({})
+  const [specification, setSpecification] = useState({})
 
   const [listFileImages, setListFileImages] = useState([])
   
   const [listFileImagesBeforeUpdate, setListFIleImagesBeforeUpdate] = useState([])
 
-  const [fileImageThumb, setFileImageThumb] = useState([]) 
+  const [fileImageThumb, setFileImageThumb] = useState([])
 
   const [modalEditProduct, setModalEditProduct] = useState(false)
   
@@ -89,7 +89,7 @@ const Tables = () => {
 
   const handleAddProduct = async () => {
     // console.log(product)
-    const newProduct = {...product, detail: [], specification: {}}
+    const newProduct = { ...product, detail: [], specification: {} }
 
     newProduct.detail.push(product.detail ? product.detail: "")
     newProduct.specification = specification
@@ -202,13 +202,13 @@ const Tables = () => {
 
 
   useEffect(() => {
-    const fetchProductList = async() => {
+    const fetchProductList = async () => {
       const productRef = db.collection("Products")
       const snapshot = await productRef.get()
 
       const result = []
       snapshot.forEach(doc => {
-        result.push(doc.data())      
+        result.push(doc.data())
       });
       // console.log(result)
 
@@ -216,7 +216,7 @@ const Tables = () => {
     }
 
     fetchProductList()
-  },[])
+  }, [])
 
 
 
@@ -231,7 +231,7 @@ const Tables = () => {
             <Button
               onClick={() => {
                 console.log(productID)
-                db.collection("Products").doc(productID).delete().then(()=>{
+                db.collection("Products").doc(productID).delete().then(() => {
                   const productListAfterDelete = productList.filter((product) => product.id !== productID)
                   setProductList(productListAfterDelete)
                 })
@@ -358,7 +358,7 @@ const Tables = () => {
 
   return (
     <>
-      <Header />
+<Header />
       {/* Page content */}
       <Container className="mt--7" fluid>
         {/* Table */}
@@ -765,7 +765,6 @@ const Tables = () => {
             <Button color="secondary" onClick={toggleModalEditProduct}>Cancel</Button>
           </ModalFooter>
         </Modal>
-
     </>
   );
 };

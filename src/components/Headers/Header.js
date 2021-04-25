@@ -15,12 +15,48 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
+import db from "firebase/firebase.config";
 import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 
 // reactstrap components
 import { Card, CardBody, CardTitle, Container, Row, Col } from "reactstrap";
 
 const Header = () => {
+
+  const [numUsers, setNumUsers] = useState(0)
+  const [sales, setSales] = useState(0)
+  const [numProducts, setNumProducts] = useState(0)
+  const [numOrders, setNumOrders] = useState(0)
+
+  useEffect(() => {
+    db.collection('Users').get().then((querySnapshot) => {
+      setNumUsers(querySnapshot.docs.length)
+    })
+  }, [])
+
+  useEffect(() => {
+    db.collection('Products').get().then((querySnapshot) => {
+      setNumProducts(querySnapshot.docs.length)
+    })
+  }, [])
+
+  useEffect(() => {
+    db.collection('Products').get().then((querySnapshot) => {
+      const currentSales = querySnapshot.docs.reduce((sum, productDoc) => (
+        sum + (productDoc.data().sales ? productDoc.data().sales : 0)
+      ), 0)
+      setSales(currentSales)
+    })
+  }, [])
+
+  useEffect(() => {
+    db.collection('Orders').get().then((querySnapshot) => {
+      setNumOrders(querySnapshot.docs.length)
+    })
+  }, [])
+
   return (
     <>
       <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
@@ -28,6 +64,7 @@ const Header = () => {
           <div className="header-body">
             {/* Card stats */}
             <Row>
+
               <Col lg="6" xl="3">
                 <Card className="card-stats mb-4 mb-xl-0">
                   <CardBody>
@@ -37,27 +74,28 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          Traffic
+                          Users
                         </CardTitle>
                         <span className="h2 font-weight-bold mb-0">
-                          350,897
+                          {numUsers}
                         </span>
                       </div>
                       <Col className="col-auto">
-                        <div className="icon icon-shape bg-danger text-white rounded-circle shadow">
-                          <i className="fas fa-chart-bar" />
+                        <div className="icon icon-shape bg-yellow text-white rounded-circle shadow">
+                          <i className="fas fa-users" />
                         </div>
                       </Col>
                     </Row>
-                    <p className="mt-3 mb-0 text-muted text-sm">
+                    {/* <p className="mt-3 mb-0 text-muted text-sm">
                       <span className="text-success mr-2">
                         <i className="fa fa-arrow-up" /> 3.48%
                       </span>{" "}
                       <span className="text-nowrap">Since last month</span>
-                    </p>
+                    </p> */}
                   </CardBody>
                 </Card>
               </Col>
+
               <Col lg="6" xl="3">
                 <Card className="card-stats mb-4 mb-xl-0">
                   <CardBody>
@@ -67,25 +105,26 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          New users
+                          Orders
                         </CardTitle>
-                        <span className="h2 font-weight-bold mb-0">2,356</span>
+                        <span className="h2 font-weight-bold mb-0">{numOrders}</span>
                       </div>
                       <Col className="col-auto">
                         <div className="icon icon-shape bg-warning text-white rounded-circle shadow">
-                          <i className="fas fa-chart-pie" />
+                          <i className="ni ni-cart" />
                         </div>
                       </Col>
                     </Row>
-                    <p className="mt-3 mb-0 text-muted text-sm">
+                    {/* <p className="mt-3 mb-0 text-muted text-sm">
                       <span className="text-danger mr-2">
                         <i className="fas fa-arrow-down" /> 3.48%
                       </span>{" "}
                       <span className="text-nowrap">Since last week</span>
-                    </p>
+                    </p> */}
                   </CardBody>
                 </Card>
               </Col>
+
               <Col lg="6" xl="3">
                 <Card className="card-stats mb-4 mb-xl-0">
                   <CardBody>
@@ -97,23 +136,24 @@ const Header = () => {
                         >
                           Sales
                         </CardTitle>
-                        <span className="h2 font-weight-bold mb-0">924</span>
+                        <span className="h2 font-weight-bold mb-0">{sales}</span>
                       </div>
                       <Col className="col-auto">
-                        <div className="icon icon-shape bg-yellow text-white rounded-circle shadow">
-                          <i className="fas fa-users" />
+                        <div className="icon icon-shape bg-green text-white rounded-circle shadow">
+                          <i className="ni ni-chart-bar-32" />
                         </div>
                       </Col>
                     </Row>
-                    <p className="mt-3 mb-0 text-muted text-sm">
+                    {/* <p className="mt-3 mb-0 text-muted text-sm">
                       <span className="text-warning mr-2">
                         <i className="fas fa-arrow-down" /> 1.10%
                       </span>{" "}
                       <span className="text-nowrap">Since yesterday</span>
-                    </p>
+                    </p> */}
                   </CardBody>
                 </Card>
               </Col>
+
               <Col lg="6" xl="3">
                 <Card className="card-stats mb-4 mb-xl-0">
                   <CardBody>
@@ -123,22 +163,22 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          Performance
+                          Products
                         </CardTitle>
-                        <span className="h2 font-weight-bold mb-0">49,65%</span>
+                        <span className="h2 font-weight-bold mb-0">{numProducts}</span>
                       </div>
                       <Col className="col-auto">
                         <div className="icon icon-shape bg-info text-white rounded-circle shadow">
-                          <i className="fas fa-percent" />
+                          <i className="ni ni-laptop" />
                         </div>
                       </Col>
                     </Row>
-                    <p className="mt-3 mb-0 text-muted text-sm">
+                    {/* <p className="mt-3 mb-0 text-muted text-sm">
                       <span className="text-success mr-2">
                         <i className="fas fa-arrow-up" /> 12%
                       </span>{" "}
                       <span className="text-nowrap">Since last month</span>
-                    </p>
+                    </p> */}
                   </CardBody>
                 </Card>
               </Col>
