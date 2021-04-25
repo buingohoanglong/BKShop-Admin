@@ -16,6 +16,7 @@
 
 */
 import React from "react";
+import { useHistory, useRouteMatch } from "react-router";
 import { Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Input, Label, Form, Col } from 'reactstrap';
 import { useAlert } from 'react-alert'
 import { confirmAlert } from 'react-confirm-alert'; // Import
@@ -55,6 +56,8 @@ import { merge } from "jquery";
 
 
 const Tables = () => {
+
+  const match = useRouteMatch()
 
   const [productList, setProductList] = useState([])
 
@@ -444,6 +447,12 @@ const Tables = () => {
                             >
                               Edit product
                             </DropdownItem>
+
+                            <DropdownItem
+                                href={`${match.url}/${product.id}`}
+                              >
+                                Details
+                              </DropdownItem>
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </td>
