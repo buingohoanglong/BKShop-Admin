@@ -171,7 +171,6 @@ const Tables = () => {
       }
       const uploadTask = storageRef.child(`images/products/${file.name}`).put(file, metadata)
       uploadTask.on('state_changed',
-<<<<<<< HEAD
           (snapshot) => {
           },
           (error) => {
@@ -189,24 +188,6 @@ const Tables = () => {
                   })
               });
           }
-=======
-        (snapshot) => {
-        },
-        (error) => {
-          // Handle unsuccessful uploads
-        },
-        () => {
-          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-            console.log(downloadURL)
-
-            db.collection("Products").doc(productID).set({
-              imgList: firebase.firestore.FieldValue.arrayUnion(downloadURL),
-            }, { merge: true }).then(() => {
-              console.log("Update image list success")
-            })
-          });
-        }
->>>>>>> 9bfc2f89defab2050ab690ff2fa1be76237028a0
       );
     })
 
