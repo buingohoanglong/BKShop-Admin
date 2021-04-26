@@ -24,11 +24,17 @@ function OrderDetail(props) {
             const itemsPromise = items.map((item) => {
                 // get item title, image
                 return db.collection('Products').doc(item.productid).get().then((productDoc) => (
-                    {
-                        ...item,
-                        totalQuantity: productDoc.data().quantity,
-                        sales: productDoc.data().sales
-                    }
+                    productDoc.data()
+                        ? {
+                            ...item,
+                            onsale: true,
+                            totalQuantity: productDoc.data().quantity,
+                            sales: productDoc.data().sales,
+                        }
+                        : {
+                            ...item,
+                            onsale: false,
+                        }
                 )).catch((error) => {
                     console.log("Get item error: ", error)
                 })
@@ -193,6 +199,10 @@ function OrderDetail(props) {
                                             <Col lg='2' className='px-1'>
                                                 <div>{item.price}$</div>
                                             </Col>
+                                            {!item.onsale &&
+                                                <Col>
+                                                    <div style={{ color: 'red' }}>This product is not sold anymore</div>
+                                                </Col>}
                                         </Row>
                                     ))}
                                 </Container>
