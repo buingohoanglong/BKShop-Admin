@@ -195,7 +195,7 @@ const Orders = (props) => {
                           {order.status.toLowerCase()}
                         </Badge>
                       </td>
-                      <td>{order.orderTime}</td>
+                      <td>{new Date(order.orderTime).toString()}</td>
                       {/* <td>{order.deliverTime}</td> */}
                     </tr>
                   ))}

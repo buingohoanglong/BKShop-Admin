@@ -48,7 +48,7 @@ const Header = () => {
     // get current year sales
     db.collection('Orders').get().then((querySnapshot) => {
       const yearSales = querySnapshot.docs.reduce((sum, orderDoc) => {
-        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderTime = new Date(orderDoc.data().orderTime)
         const orderYear = orderTime.getFullYear()
         const thisYear = new Date(Date.now()).getFullYear()
         if (orderYear === thisYear) {
@@ -67,7 +67,7 @@ const Header = () => {
     // get number of orders current year
     db.collection('Orders').get().then((querySnapshot) => {
       const yearOrders = querySnapshot.docs.reduce((sum, orderDoc) => {
-        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderTime = new Date(orderDoc.data().orderTime)
         const orderYear = orderTime.getFullYear()
         const thisYear = new Date(Date.now()).getFullYear()
         return orderYear === thisYear ? sum + 1 : 0

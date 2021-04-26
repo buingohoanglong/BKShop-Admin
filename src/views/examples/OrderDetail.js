@@ -148,7 +148,7 @@ function OrderDetail(props) {
                                     <Row className='my-3 py-2' style={{ borderBottom: '1px solid black' }}>
                                         <Col lg='7'>
                                             <div><b>Order: </b>{order.orderid}</div>
-                                            <div>Placed on {order.orderTime}</div>
+                                            <div>Placed on {new Date(order.orderTime).toString()}</div>
                                         </Col>
                                         <Col lg='2'>
                                             <div><b>Total</b></div>

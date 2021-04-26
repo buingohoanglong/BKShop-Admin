@@ -99,7 +99,7 @@ const Index = (props) => {
     db.collection('Orders').get().then((querySnapshot) => {
       const data = Array(12).fill(0)
       querySnapshot.docs.forEach((orderDoc) => {
-        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderTime = new Date(orderDoc.data().orderTime)
         const orderYear = orderTime.getFullYear()
         const thisYear = new Date(Date.now()).getFullYear()
         if (orderYear === thisYear) {
@@ -117,7 +117,7 @@ const Index = (props) => {
     db.collection('Orders').get().then((querySnapshot) => {
       const data = Array(12).fill(0)
       querySnapshot.docs.forEach((orderDoc) => {
-        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderTime = new Date(orderDoc.data().orderTime)
         const orderYear = orderTime.getFullYear()
         const thisYear = new Date(Date.now()).getFullYear()
         if (orderYear === thisYear) {
@@ -141,7 +141,7 @@ const Index = (props) => {
     db.collection('Orders').get().then((querySnapshot) => {
       const data = Array(getNumberOfDaysInMonth(new Date(Date.now()))).fill(0)
       querySnapshot.docs.forEach((orderDoc) => {
-        const orderTime = new Date(Date.parse(orderDoc.data().orderTime))
+        const orderTime = new Date(orderDoc.data().orderTime)
         const orderYear = orderTime.getFullYear()
         const orderMonth = orderTime.getMonth()
         const thisYear = new Date(Date.now()).getFullYear()
